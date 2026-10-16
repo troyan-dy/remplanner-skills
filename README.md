@@ -123,7 +123,7 @@ npx skills@latest add troyan-dy/remplanner-skills
 
 | Скил | Что делает |
 |---|---|
-| [check-plan](skills/check-plan/SKILL.md) | эргономика, правила владельца, трассы; бюджет уступок |
+| [check-plan](skills/check-plan/SKILL.md) | эргономика, правила пользователя, трассы; бюджет уступок |
 | [critique-plan](skills/critique-plan/SKILL.md) | круг критики свежим субагентом по JSON и выводу проверок |
 | [remplanner-export](skills/remplanner-export/SKILL.md) | JSON планировки → файл RemPlanner `.plan` |
 | [remplanner-catalog](skills/remplanner-catalog/SKILL.md) | поиск предмета в полном каталоге: габарит, высота, подводки |

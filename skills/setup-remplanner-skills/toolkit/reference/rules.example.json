@@ -1,0 +1,137 @@
+{
+  "_note": "Стартовый набор правил для tools/check_rules.py. Типы и параметры — tools/reference/RULES.md. Правило, подтверждённое жильцами, получает id «п. N» из REQUIREMENTS.md; выключенные (enabled: false) — примеры, включать по опросу.",
+  "as_is": "plan/as_is.json",
+  "entry_radius": 250,
+  "drain": {"point": null, "slope": 0.025},
+  "rooms": {
+    "wet": ["bath", "guest", "wc", "kitchen", "laundry"],
+    "bedroom": ["bed"],
+    "walkin": ["walkin"],
+    "toilet": ["wc"],
+    "bathroom": ["bath"],
+    "sanitary": ["bath", "wc", "shower"],
+    "kitchen": ["kitchen"],
+    "loggia": ["loggia", "balcony"]
+  },
+  "rules": [
+    {
+      "id": "вход-одежда", "check": "near_entry",
+      "items": ["ward", "hanger", "coat_rack_unit"], "what": "шкафа или вешалки",
+      "text": "у входа есть место для верхней одежды",
+      "source": "предположение: одежду снимают у двери, а не проходя квартиру"
+    },
+    {
+      "id": "вход-шкаф", "check": "near_entry", "enabled": false,
+      "items": ["ward", "coat_rack_unit"], "min_front": 100, "min_depth": 60, "what": "шкафа",
+      "text": "у входа закрытый шкаф не меньше 100×60",
+      "source": "предположение: глубина 60 — вешалки поперёк штанги; фасад — по числу курток из опроса"
+    },
+    {
+      "id": "вход-сиденье", "check": "near_entry",
+      "items": ["pouf", "^bench", "banquet"], "what": "сиденья",
+      "text": "в прихожей можно сесть, чтобы обуться",
+      "source": "предположение"
+    },
+    {
+      "id": "вход-зеркало", "check": "near_entry",
+      "items": ["mirror", "zerkalo", "looking_glass", "coat_rack_unit_mirr"], "exclude_rooms": ["wet"], "what": "зеркала",
+      "text": "в прихожей есть зеркало (зеркало санузла не в счёт)",
+      "source": "предположение"
+    },
+    {
+      "id": "спальня-шкаф", "check": "bedroom_storage",
+      "text": "в каждой комнате с кроватью (или в гардеробной при ней) есть шкаф",
+      "source": "предположение: одежду хранят там, где переодеваются"
+    },
+    {
+      "id": "спальня-шкафы-200", "check": "bedroom_storage", "enabled": false, "min_front": 200,
+      "text": "в спальне шкафы суммарно не меньше 200 по фасаду",
+      "source": "предположение: 100 на взрослого; уточнить по опросу (сколько вещей на штанге и полках)"
+    },
+    {
+      "id": "канализация", "check": "drain_routes", "toilet_max": 100,
+      "text": "от точки подключения до каждого прибора есть трасса по мокрым комнатам, унитаз не дальше 1 м",
+      "source": "уклон 2–3 см на метр — ориентир СП 30.13330 (пункт не сверен); 1 м до унитаза (Ø110) — предположение"
+    },
+    {
+      "id": "стиральная-машина", "check": "items_in_rooms",
+      "items": ["^washing_machine"], "rooms": ["wet"],
+      "text": "стиральная машина — в мокрой комнате (санузел, кухня, постирочная)",
+      "source": "предположение: нужны вода, слив и гидроизоляция пола"
+    },
+    {
+      "id": "санузел", "check": "room_has", "rooms": ["toilet", "bathroom"], "required": true,
+      "items": {
+        "унитаз": ["^toilet(_with_frame|_embedded|_impulse)?$", "^corner_toilet$"],
+        "раковина": ["sink"]
+      },
+      "text": "есть туалет или совмещённый санузел с унитазом и раковиной (если туалета wc* нет — ищется в ванной bath*)",
+      "source": "предположение"
+    },
+    {
+      "id": "ванная-мытьё", "check": "room_has", "rooms": ["bathroom"],
+      "items": {"душ или ванна": ["shower_cabin", "shower_pan", "shower_ladder", "^bathtub", "bath$", "^asym_bath"]},
+      "text": "в ванной есть душ или ванна",
+      "source": "предположение"
+    },
+    {
+      "id": "душ-90", "check": "room_has", "rooms": ["bathroom"], "enabled": false,
+      "items": {"душ от 90×90": {"items": ["shower_cabin", "shower_pan", "shower_ladder"], "sizes": [[90, 90]]}},
+      "text": "душ не меньше 90×90 (включать, если вместо ванны душ)",
+      "source": "NKBA B9: мин. 76×76, рекомендовано 91×91"
+    },
+    {
+      "id": "холодильник", "check": "min_size",
+      "items": ["fridge"], "measure": "front", "min_width": 60, "what": "холодильника",
+      "text": "есть холодильник шириной не меньше 60",
+      "source": "предположение: 60 — типовая ширина отдельностоящего холодильника"
+    },
+    {
+      "id": "посудомойка", "check": "room_has", "enabled": false,
+      "items": {"посудомойка": {"items": ["dishwasher"], "modules": true}},
+      "text": "в кухне есть посудомоечная машина (модуль dishwasher в kitchen_run или отдельный предмет)",
+      "source": "по опросу"
+    },
+    {
+      "id": "рабочий-стол", "check": "min_size", "enabled": false,
+      "items": ["writingdesk", "work_table", "^desk"], "min_width": 120, "exclude_rooms": ["loggia"],
+      "what": "рабочего стола",
+      "text": "есть рабочий стол не меньше 120 не на лоджии (для работы из дома)",
+      "source": "предположение: ноутбук и монитор с документами"
+    },
+    {
+      "id": "стол-за-дверью", "check": "behind_door", "enabled": false,
+      "items": ["writingdesk", "work_table", "^desk"], "forbid_rooms": ["bedroom"],
+      "text": "рабочий стол — в комнате с дверью и не в спальне (звонки, свет ночью)",
+      "source": "по опросу"
+    },
+    {
+      "id": "тв-55", "check": "min_size", "enabled": false,
+      "items": ["^tv$", "^tv_on_stand$", "^tv_legs$", "tele_on_mobile_stand"], "need": "each", "min_width": 122,
+      "text": "каждый ТВ на плане не уже 122 (55″)",
+      "source": "геометрия 16:9: ширина = 0,872 × диагональ (55″ = 140 см → 122)"
+    },
+    {
+      "id": "кухня-прямая", "check": "kitchen_straight", "enabled": false,
+      "text": "кухня прямая или в два параллельных ряда, без Г-образного угла",
+      "source": "по опросу"
+    },
+    {
+      "id": "шкафы-без-угла", "check": "no_corner_join", "enabled": false,
+      "text": "шкафы не стыкуются под прямым углом (угловая секция плохо доступна)",
+      "source": "по опросу"
+    },
+    {
+      "id": "лоджия-остекление", "check": "window_full", "enabled": false,
+      "window": "win-loggia", "min_length": 500, "waiver": "loggia_brick",
+      "text": "остекление лоджии не закладывать; заложить можно с обоснованием loggia_brick в JSON концепции",
+      "source": "по опросу; id окна и длину взять из plan/as_is.json"
+    },
+    {
+      "id": "лоджия-у-стекла", "check": "window_clear", "enabled": false,
+      "window": "win-loggia", "gap": 30, "max_height": 90,
+      "text": "перед остеклением лоджии нет мебели выше подоконника (90)",
+      "source": "предположение: свет и доступ к створкам"
+    }
+  ]
+}

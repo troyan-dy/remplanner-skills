@@ -45,11 +45,12 @@ disable-model-invocation: true
 
 Напиши `src/as_is.py` на `tools/planlib.py`: он строит `plan/as_is.json`. Что войти обязано:
 
-- `walls_bearing`, `partitions`, `windows`, `doors` (входная — с `kind: "entry"`);
+- `walls_bearing`, `partitions`, `windows`, `doors` (входная — с `"entry": true`);
 - `fixed_elements`: стояки, вентканалы, точка подключения канализации (`kind: "drain"`) — от неё
   `check_rules` строит трассы ко всем приборам;
 - нынешняя сантехника и кухонная линия (унитаз, ванна или душ, раковина, мойка, плита) с привязкой `rp`;
-- `rooms` с `rect` и площадью по БТИ в `note`.
+- `rooms` с `rect` и площадью по БТИ в `note`. Роль комнаты проверки узнают по префиксу `id`: `kitchen`,
+  `bath…`, `wc…`, `bed…`, `loggia…`, `hall…` (роли — `rooms` в `rules.json`, справка — `tools/reference/RULES.md`).
 
 Мебель «как есть» — по желанию пользователя. В `meta` — высота потолков и источник плана.
 
