@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+# каталог RemPlanner собирается на машине пользователя
+**/remplanner_catalog.json
+# выгрузки и сканы, случайно положенные при отладке
+/*.plan
+/scratch/

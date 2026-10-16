@@ -1,0 +1,17 @@
+{
+  "name": "remplanner-skills",
+  "owner": {
+    "name": "Dmitriy Troyan",
+    "url": "https://github.com/troyan-dy"
+  },
+  "description": "Скилы планировки квартиры с выгрузкой в RemPlanner.",
+  "plugins": [
+    {
+      "name": "remplanner-skills",
+      "source": "./",
+      "description": "Чертёж по плану БТИ, опрос жильцов, серии концепций с проверкой эргономики, выгрузка .plan и снимки RemPlanner.",
+      "category": "productivity",
+      "keywords": ["apartment", "floor-plan", "remplanner", "renovation"]
+    }
+  ]
+}
