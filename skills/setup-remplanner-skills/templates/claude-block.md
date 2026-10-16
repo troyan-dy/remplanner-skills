@@ -12,7 +12,9 @@
 - `src/concepts_runNN.py` — генератор серии; `concepts/run-NN_<ГГГГ-ММ-ДД>/` — `<name>.json`, `<name>.plan`,
   `README.md` серии. Прошлые серии не правим, блоки из них импортируем.
 - `screenshots/` — снимки RemPlanner всех серий подряд: `run-NN_<name>.png`, `as_is.png`.
-- `tools/` — инструменты набора (обновляет `/setup-remplanner-skills`, руками не править). Формат плана —
+- `tools/` — инструменты набора: обновляет `/setup-remplanner-skills`, руками не править (исключения —
+  `tools/catalog/confirmed.json` и правки `/remplanner-primitive`). Свои находки об интерфейсе RemPlanner —
+  в `REMPLANNER_NOTES.md` в корне проекта. Формат плана —
   `tools/reference/PLAN_FORMAT.md`, эргономика — `tools/reference/ERGONOMICS.md`.
 
 ### Правила

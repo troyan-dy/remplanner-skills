@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .DS_Store
+# каталог RemPlanner: собирается fetch, это данные сайта; confirmed.json — ваш, его коммитим
+tools/catalog/remplanner_catalog.json
+tools/catalog/REMPLANNER_CATALOG.md
