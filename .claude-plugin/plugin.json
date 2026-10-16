@@ -11,10 +11,13 @@
   "keywords": [
     "apartment",
     "floor-plan",
-    "remplanner",
+    "floor-planning",
+    "interior-design",
     "renovation",
+    "remplanner",
     "ergonomics",
-    "bti"
+    "bti",
+    "russian"
   ],
   "skills": [
     "./skills/setup-remplanner-skills",

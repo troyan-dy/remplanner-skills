@@ -1,0 +1,15 @@
+name: Идея или новое правило
+description: Не хватает проверки, предмета каталога, шага во флоу
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Чего не хватает
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Источник нормы или размера
+      description: СП, справочник, замер. Без источника правило пойдёт с пометкой «предположение».

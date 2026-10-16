@@ -1,0 +1,30 @@
+name: Что-то не работает
+description: RemPlanner не открыл .plan, проверка ошибается, скил ведёт себя не так
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Не прикладывайте адрес, план БТИ и данные жильцов. JSON планировки без личных данных — можно.
+  - type: input
+    id: skill
+    attributes:
+      label: Скил или инструмент
+      placeholder: /plan-concepts, tools/check_layout.py…
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло и что ожидали
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Вывод команды или ошибка
+      render: text
+  - type: input
+    id: env
+    attributes:
+      label: Агент, версия Python и ОС
+      placeholder: Claude Code 2.x, Python 3.12, macOS

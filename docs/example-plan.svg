@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 572" width="1052" height="572" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+<style>.room{font-size:12px;font-weight:600;fill:#22252b}.area{font-size:10.5px;fill:#6b7280}.h{font-size:15px;font-weight:700;fill:#22252b}.s{font-size:12px;fill:#8b8f97}.ok{font-size:12px;fill:#3aa76d;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.lg{font-size:11px;fill:#8b8f97}</style>
+<rect width="100%" height="100%" rx="14" fill="#fbfaf7"/>
+<text x="32" y="38" class="h">plan/as_is.json — как есть</text>
+<text x="32" y="58" class="s">обведено по плану БТИ, площади сверены с экспликацией</text>
+<text x="586.0" y="38" class="h">concepts/run-01/shower.json — концепция</text>
+<text x="586.0" y="58" class="s">душ 90×90 вместо ванны, стиральная машина у стояка</text>
+<rect x="166.5" y="380.3" width="23.6" height="40.3" fill="#3aa76d" fill-opacity="0.10" stroke="#3aa76d" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="47.5" y="361.7" width="37.2" height="43.4" fill="#3aa76d" fill-opacity="0.10" stroke="#3aa76d" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="166.5" y="420.6" width="23.6" height="40.3" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="47.5" y="417.5" width="99.2" height="43.4" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="47.5" y="330.7" width="37.2" height="31.0" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="90.9" y="330.7" width="37.2" height="27.9" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="413.3" y="107.5" width="37.2" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="413.3" y="144.7" width="37.2" height="179.8" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="280.0" y="216.0" width="49.6" height="49.6" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="53.7" y="191.2" width="58.9" height="133.3" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="47.5" y="107.5" width="136.4" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="221.1" y="423.7" width="74.4" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="425.7" y="340.0" width="24.8" height="49.6" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="446.8" y="340.0" width="3.7" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="47.5" y="324.5" width="403.0" height="6.2" fill="#9aa0a8"/>
+<rect x="208.7" y="330.7" width="6.2" height="130.2" fill="#9aa0a8"/>
+<rect x="32.0" y="92.0" width="434.0" height="15.5" fill="#2b2f36"/>
+<rect x="32.0" y="460.9" width="434.0" height="15.5" fill="#2b2f36"/>
+<rect x="32.0" y="92.0" width="15.5" height="384.4" fill="#2b2f36"/>
+<rect x="450.5" y="92.0" width="15.5" height="384.4" fill="#2b2f36"/>
+<rect x="187.0" y="92.0" width="111.6" height="15.5" fill="#ffffff" stroke="#4f8fd6" stroke-width="1.2"/>
+<line x1="187.0" y1="99.8" x2="298.6" y2="99.8" stroke="#4f8fd6" stroke-width="1.2"/>
+<line x1="435.0" y1="460.9" x2="379.2" y2="460.9" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="435.0" y1="460.9" x2="435.0" y2="405.1" stroke="#22252b" stroke-width="1.4"/>
+<path d="M435.0,405.1 A55.8,55.8 0 0 0 379.2,460.9" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="270.7" y1="324.5" x2="221.1" y2="324.5" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="270.7" y1="324.5" x2="270.7" y2="274.9" stroke="#22252b" stroke-width="1.4"/>
+<path d="M270.7,274.9 A49.6,49.6 0 0 0 221.1,324.5" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="208.7" y1="386.5" x2="208.7" y2="336.9" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="208.7" y1="386.5" x2="159.1" y2="386.5" stroke="#22252b" stroke-width="1.4"/>
+<path d="M159.1,386.5 A49.6,49.6 0 0 1 208.7,336.9" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<circle cx="199.4" cy="454.7" r="4" fill="#fff" stroke="#4f8fd6" stroke-width="1.6"/>
+<circle cx="187.0" cy="454.7" r="4" fill="#fff" stroke="#4f8fd6" stroke-width="1.6"/>
+<text x="233.5" y="181.9" text-anchor="middle" class="room">Комната с кухней</text>
+<text x="233.5" y="196.9" text-anchor="middle" class="area">22.75 м² · БТИ 22.8</text>
+<text x="125.0" y="376.0" text-anchor="middle" class="room">Санузел</text>
+<text x="125.0" y="391.0" text-anchor="middle" class="area">5.46 м²</text>
+<text x="332.7" y="395.8" text-anchor="middle" class="room">Прихожая</text>
+<text x="332.7" y="410.8" text-anchor="middle" class="area">7.98 м² · БТИ 8.0</text>
+<rect x="720.5" y="380.3" width="23.6" height="40.3" fill="#3aa76d" fill-opacity="0.10" stroke="#3aa76d" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="601.5" y="361.7" width="37.2" height="43.4" fill="#3aa76d" fill-opacity="0.10" stroke="#3aa76d" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="601.5" y="361.7" width="55.8" height="43.4" fill="#3aa76d" fill-opacity="0.10" stroke="#3aa76d" stroke-width="1" stroke-dasharray="4 3"/>
+<rect x="720.5" y="420.6" width="23.6" height="40.3" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="601.5" y="330.7" width="37.2" height="31.0" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="967.3" y="107.5" width="37.2" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="967.3" y="144.7" width="37.2" height="179.8" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="834.0" y="216.0" width="49.6" height="49.6" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="607.7" y="191.2" width="58.9" height="133.3" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="601.5" y="107.5" width="136.4" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="775.1" y="423.7" width="74.4" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="979.7" y="340.0" width="24.8" height="49.6" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="1000.8" y="340.0" width="3.7" height="37.2" fill="#e9e4da" stroke="#8a8172" stroke-width="1" rx="2"/>
+<rect x="601.5" y="405.1" width="55.8" height="55.8" fill="#f6d9a8" stroke="#c98a1e" stroke-width="1.4" rx="2"/>
+<rect x="663.5" y="433.0" width="37.2" height="27.9" fill="#f6d9a8" stroke="#c98a1e" stroke-width="1.4" rx="2"/>
+<rect x="601.5" y="324.5" width="403.0" height="6.2" fill="#9aa0a8"/>
+<rect x="762.7" y="330.7" width="6.2" height="130.2" fill="#9aa0a8"/>
+<rect x="586.0" y="92.0" width="434.0" height="15.5" fill="#2b2f36"/>
+<rect x="586.0" y="460.9" width="434.0" height="15.5" fill="#2b2f36"/>
+<rect x="586.0" y="92.0" width="15.5" height="384.4" fill="#2b2f36"/>
+<rect x="1004.5" y="92.0" width="15.5" height="384.4" fill="#2b2f36"/>
+<rect x="741.0" y="92.0" width="111.6" height="15.5" fill="#ffffff" stroke="#4f8fd6" stroke-width="1.2"/>
+<line x1="741.0" y1="99.8" x2="852.6" y2="99.8" stroke="#4f8fd6" stroke-width="1.2"/>
+<line x1="989.0" y1="460.9" x2="933.2" y2="460.9" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="989.0" y1="460.9" x2="989.0" y2="405.1" stroke="#22252b" stroke-width="1.4"/>
+<path d="M989.0,405.1 A55.8,55.8 0 0 0 933.2,460.9" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="824.7" y1="324.5" x2="775.1" y2="324.5" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="824.7" y1="324.5" x2="824.7" y2="274.9" stroke="#22252b" stroke-width="1.4"/>
+<path d="M824.7,274.9 A49.6,49.6 0 0 0 775.1,324.5" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<line x1="762.7" y1="386.5" x2="762.7" y2="336.9" stroke="#fbfaf7" stroke-width="8.8"/>
+<line x1="762.7" y1="386.5" x2="713.1" y2="386.5" stroke="#22252b" stroke-width="1.4"/>
+<path d="M713.1,386.5 A49.6,49.6 0 0 1 762.7,336.9" fill="none" stroke="#22252b" stroke-width="0.8" stroke-dasharray="3 2"/>
+<circle cx="753.4" cy="454.7" r="4" fill="#fff" stroke="#4f8fd6" stroke-width="1.6"/>
+<circle cx="741.0" cy="454.7" r="4" fill="#fff" stroke="#4f8fd6" stroke-width="1.6"/>
+<text x="787.5" y="181.9" text-anchor="middle" class="room">Комната с кухней</text>
+<text x="787.5" y="196.9" text-anchor="middle" class="area">22.75 м² · БТИ 22.8</text>
+<text x="679.0" y="376.0" text-anchor="middle" class="room">Санузел</text>
+<text x="679.0" y="391.0" text-anchor="middle" class="area">5.46 м²</text>
+<text x="886.7" y="395.8" text-anchor="middle" class="room">Прихожая</text>
+<text x="886.7" y="410.8" text-anchor="middle" class="area">7.98 м² · БТИ 8.0</text>
+<line x1="488.0" y1="284.2" x2="556.0" y2="284.2" stroke="#8b8f97" stroke-width="2"/><path d="M564.0,284.2 l-10,-6 v12 z" fill="#8b8f97"/><text x="526.0" y="272.2" text-anchor="middle" class="lg">генератор</text><text x="526.0" y="306.2" text-anchor="middle" class="lg">+ проверки</text>
+<text x="586.0" y="510.4" class="ok">check_layout: ok · уступок 1, балл 0.6 из 3.0</text><text x="586.0" y="528.4" class="ok">check_rules:  ok  →  shower.plan открывается в RemPlanner</text>
+<rect x="32" y="497.4" width="14" height="10" rx="1.5" fill="#2b2f36"/><text x="51" y="506.4" class="lg">несущие</text>
+<rect x="111.80000000000001" y="497.4" width="14" height="10" rx="1.5" fill="#9aa0a8"/><text x="130.8" y="506.4" class="lg">перегородки</text>
+<rect x="217.20000000000002" y="497.4" width="14" height="10" rx="1.5" fill="#e9e4da" stroke="#8a8172" stroke-width="1"/><text x="236.20000000000002" y="506.4" class="lg">мебель</text>
+<rect x="290.6" y="497.4" width="14" height="10" rx="1.5" fill="#f6d9a8" stroke="#c98a1e" stroke-width="1"/><text x="309.6" y="506.4" class="lg">изменено</text>
+<rect x="376.8" y="497.4" width="14" height="10" rx="1.5" fill="none" stroke="#3aa76d" stroke-width="1" stroke-dasharray="3 2"/><text x="395.8" y="506.4" class="lg">свободные зоны</text>
+<text x="32" y="526.4" class="lg">выдуманная квартира из toolkit/example, сантиметры, ось y вниз</text>
+</svg>

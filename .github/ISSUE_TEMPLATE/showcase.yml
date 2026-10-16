@@ -1,0 +1,19 @@
+name: Показать свою планировку
+description: Поделиться результатом — снимком концепции и тем, как прошла работа с набором
+labels: [показать]
+body:
+  - type: markdown
+    attributes:
+      value: Уберите с плана адрес и всё, что выдаёт квартиру. Снимок из RemPlanner обычно годится как есть.
+  - type: textarea
+    id: shots
+    attributes:
+      label: Снимки
+      description: Перетащите картинки сюда
+    validations:
+      required: true
+  - type: textarea
+    id: story
+    attributes:
+      label: Как прошло
+      description: Сколько серий, что получилось, что мешало
