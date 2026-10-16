@@ -25,6 +25,17 @@
 - Каждый норматив и размер — с источником или пометкой «предположение».
 - Инструменты — Python 3.9+ без сторонних пакетов (selftest проходит на 3.9.6).
 
+## Релизы
+
+Каждый коммит в `main` — релиз (так велел владелец репозитория). Claude Code обновляет плагин у пользователей
+по `version`, без бампа изменения до них не дойдут.
+
+1. Бамп `version` в `.claude-plugin/plugin.json`: patch — правки текста, исправления; minor — новый скил,
+   инструмент, тип правила или несовместимая правка формата (пока версия 0.x).
+2. В `CHANGELOG.md` — раздел `## X.Y.Z — ГГГГ-ММ-ДД` с тем, что изменилось для пользователя.
+3. `claude plugin validate . --strict` и selftest, коммит, тег `vX.Y.Z`, `git push origin main vX.Y.Z`.
+4. `gh release create vX.Y.Z --title vX.Y.Z --notes-file <раздел CHANGELOG>`.
+
 ## Проверка инструментов
 
 `python3 skills/setup-remplanner-skills/toolkit/selftest.py` — разворачивает проект с примером
