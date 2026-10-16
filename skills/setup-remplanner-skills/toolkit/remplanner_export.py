@@ -298,10 +298,15 @@ def join(segs, only=None):
                     setattr(s, end, o.c - o.d / 2 if oe < o.c else o.c + o.d / 2)
 
 
-def find_wall(walls_by_seg, x, y):
+def find_wall(walls_by_seg, x, y, what):
+    """Стена, в толще которой точка (x, y) координат RemPlanner; what — подпись проёма для ошибки."""
     cands = [(s, w) for s, w in walls_by_seg if s.contains(x, y)]
     if not cands:
-        raise SystemExit(f"нет стены для проёма в точке ({x:.0f},{y:.0f})")
+        jx, jy = x + CX, ((H - CY - y) if MIRROR else y + CY)  # обратно в координаты JSON
+        raise SystemExit(
+            f"{what}: нет стены для проёма в точке ({jx:.0f}, {jy:.0f}) в координатах JSON — середина проёма "
+            "должна лежать в толще стены walls_bearing, partitions или insulation"
+        )
     return min(cands, key=lambda sw: abs((y if sw[0].axis == "h" else x) - sw[0].c))
 
 
@@ -328,6 +333,7 @@ def out_path(path):
 def export(path):
     plan = json.load(open(path, encoding="utf-8"))
     stem = os.path.splitext(os.path.basename(path))[0]
+    R.check_names(plan, path)
     R.random.seed(stem)  # стабильные id: перегенерация без изменений даёт тот же файл
     R._used.clear()
     set_frame(plan)
@@ -356,7 +362,7 @@ def export(path):
     used_doors = set()
     for wd in plan["windows"]:
         x, y, ww, hh = rect_rp(wd["rect"])
-        s, w = find_wall(walls_by_seg, x + ww / 2, y + hh / 2)
+        s, w = find_wall(walls_by_seg, x + ww / 2, y + hh / 2, f"windows {wd['id']}")
         t0, t1 = rect_span(w, wd["rect"])
         if wd.get("windoor_door"):
             d = doors[wd["windoor_door"]]
@@ -390,7 +396,7 @@ def export(path):
         if d["id"] in used_doors:
             continue
         mx, my = door_mid[d["id"]]
-        s, w = find_wall(walls_by_seg, mx, my)
+        s, w = find_wall(walls_by_seg, mx, my, f"doors {d['id']}")
         th, to = t_on(w, *to_rp(*d["hinge"])), t_on(w, *to_rp(*d["other"]))
         p1, p2 = w["p1"], w["p2"]
         L = math.hypot(p2["x"] - p1["x"], p2["y"] - p1["y"])
@@ -426,7 +432,7 @@ def export(path):
     new = sorted({it["name"] for it in items} - R.confirmed_names())
     if new:
         print(
-            "  · не подтверждены импортом (проверить на снимке, затем — в tools/catalog/confirmed.json): "
+            "  · не подтверждены импортом (проверить на снимке, затем python3 tools/rp_catalog.py confirm <name>): "
             + ", ".join(new)
         )
 
@@ -443,13 +449,7 @@ def make_items(rect, sp):
     return [R.item(name, cx, cy, width, height, angle, **extra)]
 
 
-KITCHEN = {
-    "box": "kitchen_box_door_double",
-    "sink": "kitchen_box_door_double",
-    "stove": "stove",
-    "washer": "washing_machine",
-    "dishwasher": "kitchen_box_dishwasher",
-}
+KITCHEN = R.KITCHEN  # сокращения модулей линии кухни (rp_lib.KITCHEN)
 
 
 def kitchen_run(rect, back, modules):
@@ -463,7 +463,7 @@ def kitchen_run(rect, back, modules):
     out, a, top = [], 0, []
     for m in modules:
         name = KITCHEN.get(m, m)
-        e = R.full_catalog()[name]
+        e = R.info(name)
         n = 60 if m in KITCHEN else e["width"]
         r = sub(a, n)
         out += make_items(r, {"name": name, "back": back})

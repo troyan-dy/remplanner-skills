@@ -29,7 +29,7 @@ import sys
 from collections import deque
 
 import rp_lib
-from remplanner_export import KITCHEN
+from rp_lib import KITCHEN
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта — родитель tools/
 STEP = 5
@@ -84,7 +84,8 @@ def specs(f):
 
 
 def cat(name):
-    return rp_lib.full_catalog().get(name, {})
+    """Запись каталога (без полного каталога — для имён CATALOG и confirmed.json, rp_lib.info)."""
+    return rp_lib.info(name)
 
 
 def has(f, pats, modules=False):
@@ -493,6 +494,7 @@ def load_rules(path):
 
 def check(path, cfg, rules):
     p = json.load(open(path, encoding="utf-8"))
+    rp_lib.check_names(p, path)
     c = Ctx(p, cfg)
     errs, info = [], []
     for r in rules:

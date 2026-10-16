@@ -5,6 +5,11 @@
   python3 tools/rp_catalog.py build <planner.tools___*.js>   # → tools/catalog/remplanner_catalog.json + REMPLANNER_CATALOG.md
   python3 tools/rp_catalog.py find <слово> [<слово> ...]      # поиск по имени/названию/разделу
   python3 tools/rp_catalog.py show <name>                    # всё о предмете
+  python3 tools/rp_catalog.py confirm <name> [заметка]       # подтверждён снимком → tools/catalog/confirmed.json
+  python3 tools/rp_catalog.py core                           # выписка для CATALOG → tools/reference/catalog_core.json
+
+find и show без полного каталога ищут среди предметов rp_lib.CATALOG и confirmed.json (выписка
+tools/reference/catalog_core.json и поле "catalog" в confirmed.json) и говорят, что полный каталог не собран.
 
 Источники (как получить заново — tools/reference/REMPLANNER_V3_SCHEMA.md, «Полный каталог»):
   - window.global_tools из публичного https://remplanner.ru/files/js/v2/app/planner.tools___<ver>.js —
@@ -281,10 +286,17 @@ def build(js_path):
     )
 
 
-def load():
-    if not os.path.exists(JSON_OUT):
+def load(strict=True):
+    """Полный каталог; без него при strict=False — предметы CATALOG и confirmed.json (с предупреждением)."""
+    if os.path.exists(JSON_OUT):
+        return json.load(open(JSON_OUT, encoding="utf-8"))["items"]
+    if strict:
         sys.exit(f"нет каталога {os.path.relpath(JSON_OUT, ROOT)} — запустите python3 tools/rp_catalog.py fetch")
-    return json.load(open(JSON_OUT, encoding="utf-8"))["items"]
+    cat = dict(rp_lib.core())
+    cat.update({n: v["catalog"] for n, v in rp_lib.confirmed().items() if v.get("catalog")})
+    print(f"полный каталог не собран (python3 tools/rp_catalog.py fetch) — ищу среди {len(cat)} предметов "
+          "rp_lib.CATALOG и confirmed.json")
+    return cat
 
 
 def _get(opener, url, data=None):
@@ -456,25 +468,81 @@ def write_md(cat, roots, order):
     open(MD_OUT, "w", encoding="utf-8").write("\n".join(L))
 
 
-def find(words):
-    cat = load()
-    ws = [w.lower() for w in words]
+# Слова, которых нет ни в названиях, ни в разделах каталога: при пустом поиске ищется и замена.
+SYNONYMS = {"миск": "кормушк", "поилк": "кормушк", "лоток": "кошачий туалет"}
+
+
+def _matches(cat, ws):
+    out = []
     for n, e in cat.items():
         hay = " ".join(
-            [n, e["title"]] + [" ".join(map(str, m[:2])) for m in e.get("menu", [])]
+            [n, n.replace("_", " "), e["title"], e.get("desc", "")]
+            + [" ".join(map(str, m[:2])) for m in e.get("menu", [])]
         ).lower()
         if all(w in hay for w in ws):
-            m = " | ".join(
-                f"{a}/{b}{' PRO' if p else ''}" for a, b, p in e.get("menu", [])
-            )
-            print(
-                f"{n:40} {e['id']:5} {e['width']}×{e['height']}×{e['self_height']:<4} {e['title']}"
-                f"{'' if e['in_items'] else '  [не items]'}  — {m}  {purpose(e)}"
-            )
+            out.append((n, e))
+    return out
+
+
+def find(words):
+    """Поиск без учёта регистра по имени (английскому), названию, описанию и разделу меню; все слова сразу.
+    Ничего не нашлось — повтор с заменой по SYNONYMS («миска» → «кормушк»), затем с корнем слов, укороченных
+    до 4 и до 3 букв (русские словоформы: «кошк» → «кош» найдёт «Кошачий»); такие находки помечены."""
+    cat = load(strict=False)
+    ws = [w.lower() for w in words]
+    hits, how = _matches(cat, ws), ""
+    alt = [next((v for k, v in SYNONYMS.items() if w.startswith(k)), w) for w in ws]
+    if not hits and alt != ws:
+        hits, how = _matches(cat, alt), "по замене «" + " ".join(alt) + "»"
+    for n in (4, 3):
+        if hits:
+            break
+        roots = [w[:n] if len(w) > n else w for w in ws]
+        if roots != ws:
+            hits, how = _matches(cat, roots), "по корню «" + " ".join(roots) + "»"
+    if not hits:
+        print("ничего не найдено: " + " ".join(words))
+        return
+    if how:
+        print(f"точных совпадений нет — найдено {how}:")
+    for n, e in hits:
+        m = " | ".join(f"{a}/{b}{' PRO' if p else ''}" for a, b, p in e.get("menu", []))
+        print(
+            f"{n:40} {e['id']:5} {e['width']}×{e['height']}×{e['self_height']:<4} {e['title']}"
+            f"{'' if e['in_items'] else '  [не items]'}  — {m}  {purpose(e)}"
+        )
+
+
+def confirm(name, note=""):
+    """Записать предмет, подтверждённый снимком RemPlanner, в tools/catalog/confirmed.json — с датой, заметкой
+    и копией записи полного каталога (с ней предмет работает и без полного каталога)."""
+    import datetime
+
+    e = load().get(name)
+    if e is None:
+        sys.exit(f"{name}: нет в каталоге — python3 tools/rp_catalog.py find <слово>")
+    data = dict(rp_lib.confirmed())
+    data[name] = {"date": datetime.date.today().isoformat(), "note": note, "catalog": e}
+    os.makedirs(CAT_DIR, exist_ok=True)
+    json.dump(data, open(rp_lib.CONFIRMED_JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(f"{name} → {os.path.relpath(rp_lib.CONFIRMED_JSON, ROOT)}")
+
+
+def core():
+    """Выписка полного каталога для имён rp_lib.CATALOG → tools/reference/catalog_core.json (для разработчика
+    набора: обновлять при правке CATALOG). Без desc и subgroup — проверкам и экспорту они не нужны."""
+    cat = load()
+    out = {n: {k: v for k, v in cat[n].items() if k not in ("desc", "subgroup")} for n in rp_lib.CATALOG}
+    with open(rp_lib.CORE_JSON, "w", encoding="utf-8") as fh:
+        fh.write("{\n" + ",\n".join(f"{json.dumps(n)}: {json.dumps(e, ensure_ascii=False)}" for n, e in out.items())
+                 + "\n}\n")
+    print(f"{len(out)} предметов → {os.path.relpath(rp_lib.CORE_JSON, ROOT)}")
 
 
 def show(name):
-    e = load()[name]
+    e = load(strict=False).get(name)
+    if e is None:
+        sys.exit(f"{name}: нет сведений" + ("" if os.path.exists(JSON_OUT) else " — нужен полный каталог"))
     print(json.dumps(e, ensure_ascii=False, indent=1))
     print("назначение:", purpose(e))
     for sec, grp, _ in e.get("menu", []):
@@ -484,7 +552,7 @@ def show(name):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or sys.argv[1] not in ("fetch", "build", "find", "show"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("fetch", "build", "find", "show", "confirm", "core"):
         sys.exit(__doc__)
     cmd, args = sys.argv[1], sys.argv[2:]
     {
@@ -492,4 +560,6 @@ if __name__ == "__main__":
         "build": lambda: build(args[0]),
         "find": lambda: find(args),
         "show": lambda: show(args[0]),
+        "confirm": lambda: confirm(args[0], " ".join(args[1:])),
+        "core": core,
     }[cmd]()

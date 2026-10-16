@@ -49,4 +49,5 @@ if __name__ == "__main__":
             "python3 tools/rp_catalog.py find <слово> | show <name>; справочник tools/catalog/REMPLANNER_CATALOG.md"
         )
     else:
-        print("## полного каталога нет — python3 tools/rp_catalog.py fetch")
+        print("## полного каталога нет: работают предметы CATALOG и confirmed.json, прочие — после "
+              "python3 tools/rp_catalog.py fetch")

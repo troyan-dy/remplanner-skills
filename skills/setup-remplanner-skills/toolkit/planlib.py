@@ -60,8 +60,9 @@ def is_entry(d):
 
 
 def blank(title, keep_doors=None, base=None):
-    """Каркас для новой концепции: несущие стены, окна, утепление, fixed_elements, meta из плана «как есть»;
-    partitions, furniture, zones, rooms, ergo_waivers — пустые.
+    """Каркас для новой концепции: несущие стены, окна, утепление, fixed_elements, meta и structural_waivers
+    (уступки из-за несущего, ergonomics.py) из плана «как есть»; partitions, furniture, zones, rooms,
+    ergo_waivers — пустые.
     keep_doors — id дверей, которые остаются; по умолчанию входная (is_entry) и двери балконных блоков
     (windows[].windoor_door) — они в несущих стенах. base — свой исходный план вместо as_is()."""
     p = copy.deepcopy(base) if base is not None else as_is()
@@ -186,8 +187,12 @@ def fixed(fid, kind, point=None, rect=None, name=None):
 
 
 def waive(p, **kw):
-    """Уступки от «желательно» с обоснованием: ключ — «правило» или «правило:начало имени объекта»
-    (в имени аргумента «:» пишется как «__»: door_width__door-loggia → "door_width:door-loggia")."""
+    """Уступки от «желательно» с обоснованием (ergo_waivers): ключ — «правило» или «правило:начало имени объекта».
+    Два способа записи:
+        waive(p, wc_side="унитаз у стояка: сбоку 22 — зато без подиума")         # имя правила — аргумент
+        waive(p, **{"door_open:door-bath": "дверь упирается в тумбу на 80° — зато раковина 80"})  # с объектом
+    В имени аргумента «:» можно писать как «__» (wc_side__wc → "wc_side:wc"), но id с дефисом так не записать —
+    тогда только словарь **{...}. Уступки из-за несущего — не здесь, а structural_waivers в plan/as_is.json."""
     p.setdefault("ergo_waivers", {}).update({k.replace("__", ":"): v for k, v in kw.items()})
 
 

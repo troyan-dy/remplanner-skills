@@ -8,6 +8,15 @@
 Уступка без обоснования — тоже не проходит. Сумма уступок ограничена бюджетом BUDGET: каждая стоит
 weight × доля пути от want к min (0…1), так что уступить можно в одном-двух местах, а не везде понемногу.
 
+ИЗ-ЗА НЕСУЩЕГО. Уступки, которые навязывают несущие конструкции, бюджет не тратят:
+- план «как есть» (plan/as_is.json) пишет `"structural_waivers": {"<правило>" | "<правило>:<начало имени объекта>":
+  "причина"}` — planlib.as_is()/blank() переносят поле в каждую концепцию; уступка по такому ключу считается
+  обоснованной и стоит 0 (ниже min — по-прежнему не проходит: несущее не оправдывает недопустимое);
+- проход (pass_any, pass_main), у которого горлышко — между двумя несущими стенами (cap в измерении
+  check_layout): шире его не сделать, уступка — «из-за несущего» без записи в JSON. Общий случай cost(v, cap):
+  цель want снижается до cap, баллы — только за недобор ниже cap.
+Такие уступки check_layout -w печатает отдельно («≈ из-за несущего»).
+
 Полный свод правил, включая ручные (свет, розетки, высоты), источники и споры между нормами —
 tools/reference/ERGONOMICS.md; числа здесь и там одинаковые, id совпадают."""
 
@@ -35,12 +44,18 @@ class Rule:
             return "soft"
         return "ok"
 
-    def cost(self, v):
+    def cost(self, v, cap=None):
+        """Цена уступки; cap — лучшее значение, которое пускают несущие стены: хуже want — цель снижается до cap."""
         if self.level(v) != "soft":
             return 0.0
+        want = self.want
+        if cap is not None and self.level(cap) != "ok":
+            want = cap
+            if not ((v < want) if self.sense == "ge" else (v > want)):
+                return 0.0
         if self.min is None or self.min == self.want:
             return self.weight
-        return self.weight * min(1.0, abs(self.want - v) / abs(self.want - self.min))
+        return self.weight * min(1.0, abs(want - v) / abs(self.want - self.min))
 
 
 BUDGET = 3.0  # предположение: ≈ три полные уступки или шесть половинных на концепцию
@@ -59,7 +74,15 @@ RULES = [
          "min NKBA B1 (61, существующий санузел); want СП 59 п. 7.1.6, DIN 18040-2 (80)", weight=0.5),
     Rule("door_open", "угол открывания полотна до мебели или стены", 85, 90, "°",
          "NKBA K2/B2: двери не мешают; 85 — полотно ложится на стену, предп."),
-    Rule("door_clash", "створки двух дверей задевают друг друга", None, 0, "шт.", "NKBA K2/B2", "le", 0.5),
+    Rule("door_clash", "створки двух дверей задевают друг друга или створка заходит в соседний проём", None, 0,
+         "шт.", "NKBA K2/B2", "le", 0.5),
+    Rule("door_leaf_pass", "открытое на 90° полотно поперёк маршрута: проход от края полотна до препятствия", 0, 70,
+         "см", "want = min pass_main (DIN 18011, 70); NKBA K2/B2: двери не мешают; жёсткой границы нет — полотно "
+         "открыто ненадолго, а дверь санузла наружу в коридор 90 — обычное дело (предп.)", weight=0.25),
+    Rule("door_leaf_front", "открытое на 90° полотно перед распашным шкафом, ящиками, кухней, стиральной машиной: "
+         "от фасада до полотна", 50, 70, "см",
+         "min предп. (дверца или ящик открывается на 40–55); want DIN 18011 (70 перед мебелью); NKBA K2/B2",
+         weight=0.5),
     # Перед мебелью
     Rule("bed_side", "свободно вдоль бока кровати (без 55 см у изголовья, где тумба)", 50, 70, "см",
          "min предп.; want DIN 18011 (70)"),
@@ -119,25 +142,40 @@ def _waiver(waivers, rule, obj):
     return None
 
 
-def judge(measurements, waivers):
-    """measurements: [(правило, объект, значение)] → итог: ok, hard, soft (с обоснованием или без), score."""
-    rows, hard, soft, unjust, score = [], [], [], [], 0.0
-    for rule, obj, v in measurements:
+def judge(measurements, waivers, structural=None):
+    """measurements: [(правило, объект, значение[, cap])] → итог: ok, hard, soft (с обоснованием или без),
+    struct (из-за несущего: structural_waivers или проход не шире cap), score.
+    cap — лучшее значение, которое пускают несущие стены (check_layout.m_passages: горлышко прохода между двумя
+    несущими), structural — structural_waivers плана."""
+    structural = structural or {}
+    rows, hard, soft, unjust, struct, score = [], [], [], [], [], 0.0
+    for m in measurements:
+        rule, obj, v = m[:3]
+        cap = m[3] if len(m) > 3 else None
         r = R[rule]
         lv = r.level(v)
-        why = _waiver(waivers, rule, obj) if lv == "soft" else None
+        why = None
+        if lv == "soft":
+            sw = _waiver(structural, rule, obj)
+            if sw is None and cap is not None and r.cost(v, cap) == 0:
+                sw = f"горлышко прохода между двумя несущими стенами — {cap} {r.unit}"
+            if sw is not None:
+                lv = "struct"
+                struct.append((rule, obj, v, sw))
+            else:
+                why = _waiver(waivers, rule, obj)
+                score += r.cost(v, cap)
+                (soft if why else unjust).append((rule, obj, v, why))
+        elif lv == "hard":
+            hard.append((rule, obj, v, cap if cap is not None and cap >= 0 and r.level(cap) == "hard" else None))
         rows.append((rule, obj, v, lv, why))
-        if lv == "hard":
-            hard.append((rule, obj, v))
-        elif lv == "soft":
-            score += r.cost(v)
-            (soft if why else unjust).append((rule, obj, v, why))
     used = {k for k in waivers if any(_waiver({k: 1}, rl, ob) for rl, ob, _, lv, _ in rows if lv == "soft")}
     return {
         "rows": rows,
         "hard": hard,
         "soft": soft,
         "unjust": unjust,
+        "struct": struct,
         "score": round(score, 2),
         "unused": sorted(set(waivers) - used),
         "ok": not hard and not unjust and score <= BUDGET,
@@ -163,13 +201,18 @@ def table():
 def report(name, v, verbose=False, waivers=False):
     head = f"{name}: " + ("ok" if v["ok"] else "НЕ ПРОХОДИТ")
     head += f" · уступок {len(v['soft']) + len(v['unjust'])}, балл {v['score']} из {BUDGET}"
+    if v.get("struct"):
+        head += f" (и {len(v['struct'])} из-за несущего)"
     lines = [head]
-    for rule, obj, val in v["hard"]:
-        lines.append(f"  ✗ ниже минимума: {obj} — {_fmt(rule, val)}")
+    for rule, obj, val, cap in v["hard"]:
+        tail = " — горлышко между двумя несущими стенами" if cap is not None else ""
+        lines.append(f"  ✗ ниже минимума: {obj} — {_fmt(rule, val)}{tail}")
     for rule, obj, val, _ in v["unjust"]:
         lines.append(f"  ? уступка без обоснования: {obj} — {_fmt(rule, val)}")
     for rule, obj, val, why in v["soft"] if waivers or verbose else []:
         lines.append(f"  ~ уступка: {obj} — {_fmt(rule, val)} — {why}")
+    for rule, obj, val, why in v.get("struct", []) if waivers or verbose else []:
+        lines.append(f"  ≈ из-за несущего: {obj} — {_fmt(rule, val)} — {why}")
     for k in v["unused"]:
         lines.append(f"  · обоснование не нужно (нарушения нет): {k}")
     if v["score"] > BUDGET:

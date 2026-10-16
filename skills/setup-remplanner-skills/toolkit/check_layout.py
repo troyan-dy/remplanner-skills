@@ -12,29 +12,40 @@
 открывания `swing` (внутрь квартиры); входную дверь не проверяют door_width/door_open и не делают целью прохода.
 Измерения:
 - проходы: «самый широкий путь» от входа (клетки с d ≥ w/2) к каждой цели — зонам `zones`, месту стоящего
-  человека в 30 см перед лицевой стороной предмета, обеим сторонам каждой межкомнатной двери (в 45 см от
-  полотна). В круге радиуса w/2 + 10 у каждого проёма сужение не считается: ширину двери проверяет своё правило;
+  человека в 30 см перед лицевой стороной предмета (перед фасадом уже SMALL_FACE — со сдвигом вдоль фасада, как
+  перед фасадом SMALL_FACE: к миске в углу подходят чуть сбоку), обеим сторонам каждой межкомнатной двери (в 45 см
+  от полотна). В круге радиуса w/2 + 10 у каждого проёма сужение не считается: ширину двери проверяет своё правило.
+  Горлышко пути между двумя несущими стенами (bearing_gap) — уступка «из-за несущего», без баллов;
 - зоны перед предметами: свободная глубина от лицевой грани (кровать — бока и изножье, без 55 см у изголовья,
-  где тумбы) до первого препятствия; для унитаза и раковины — ещё от оси до боковых препятствий;
-- двери: угол, на который полотно открывается до мебели/стены; пересечение створок двух дверей;
+  где тумбы; у односпальной — один, более свободный бок) до первого препятствия; для унитаза и раковины — ещё
+  от оси до боковых препятствий;
+- двери: ширина (кроме входной и двери балконного блока — проёмы в несущих стенах); угол, на который полотно
+  открывается до мебели/стены; пересечение створок двух дверей и створки с соседним проёмом без полотна;
+  полотно, открытое на 90°: остаток прохода за его краем, если мимо идёт маршрут, и расстояние до фасада шкафа,
+  ящиков, кухни, стиральной машины перед ним;
 - выступающие углы на маршрутах: кратчайший путь от входа к каждой цели (плечи 55) поворачивает у угла стены
   или мебели — меряется ширина прохода у этого угла (свободное место по обеим граням и по биссектрисе);
 - кухня (`kitchen_run`): столешница по бокам плиты, между мойкой и плитой, рабочий треугольник
   мойка–плита–холодильник, плита — окно;
 - ТВ: расстояние от глаз (диван, кровать напротив) в диагоналях и угол в сторону от оси;
 - рабочий стол: окно сбоку, а не перед лицом или за спиной.
-Препятствия для проходов — без навесного с низом ≥ 100 см и переставляемого (SKIP, стулья); для зон перед
-предметами столы считаются, стулья — нет. Не проверяет: высоты, навесные шкафы, свет и розетки (их нет в плане) —
-это ручные правила из tools/reference/ERGONOMICS.md."""
+Препятствия для проходов — без навесного с низом ≥ 100 см (rp.over_floor, иначе каталог) и переставляемого (SKIP,
+стулья); для зон перед предметами столы считаются, стулья — нет.
+Роли предметов (диван, кровать, стул, рабочий и обеденный стол, ТВ, холодильник, пенал, плита, раковина, шкаф…) —
+по разделу меню каталога и шаблонам имён (M_*, is_*), так что проверяются любые предметы каталога, а не только
+перечисленные; для имён rp_lib.CATALOG разделы есть и без полного каталога (tools/reference/catalog_core.json).
+Не проверяет: высоты, навесные шкафы, свет и розетки (их нет в плане) — это ручные правила из
+tools/reference/ERGONOMICS.md."""
 
 import heapq
 import json
 import math
+import re
 import sys
 
 import ergonomics as E
 import rp_lib
-from remplanner_export import KITCHEN
+from rp_lib import KITCHEN
 
 STEP = 2
 MARGIN = 20  # запас сетки вокруг габарита плана, см: снаружи входной двери тоже есть клетки
@@ -49,12 +60,11 @@ SKIP = {
     "chair",
     "office_chair",
     "table",
-    "dryer",
     "towel_dryer",
     "bar_chair_backrest",
     "folding_wall_table",
     "tetra_stillage",
-}  # навесное, переставляемое
+}  # навесное, переставляемое (dryer — напольная сушильная машина 60×60×85, она препятствие)
 NO_TARGET = {
     "tv",
     "bathroom_mirror",
@@ -63,7 +73,6 @@ NO_TARGET = {
     "table",
     "worktop",
     "kitchen_sink",
-    "dryer",
     "towel_dryer",
     "bar_chair_backrest",
     "table_round",
@@ -78,15 +87,6 @@ FRONT = {
     "left": (1, 0),
     "right": (-1, 0),
 }  # куда смотрит лицо при back=…
-CHAIRS = {"chair", "office_chair", "bar_chair_backrest"}
-SEATS = {"sofa_triple", "sofa_double", "bed_double"}
-TALL_KITCHEN = {
-    "built_in_fridge",
-    "fridge",
-    "pencil_case_oven_microwave",
-    "kitchen_box_penal",
-}
-FRIDGES = {"built_in_fridge", "fridge"}
 HINGED = {  # шкафы с распашными дверями (купе, гармошка, открытые — ward_front)
     "ward_single",
     "ward",
@@ -99,31 +99,131 @@ HINGED = {  # шкафы с распашными дверями (купе, га�
     "double_leaf_corner_section",
     "single_leaf_corner_section",
 }
+DRAWERS = {"commode", "shoes_closet", "low_cabinet_sideboard", "chest_for_sink"}
+SHELVES = {"bookshelf", "stillage_floor_book"}
+TOILETS = r"^toilet(_with_frame|_embedded|_impulse)?$|^corner_toilet$"  # как check_rules.TOILETS
+WASHERS = r"^(washing_machine(_top|_mini)?|dryer|dryer_over_washing)$"
+SMALL_FACE = 50  # предмет с фасадом уже — встать перед ним можно и со сдвигом вдоль фасада (миски, лоток, унитаз)
+
+# Роли предметов — по разделу меню каталога (поле menu: «раздел», «группа») и шаблонам имён, чтобы любые диваны,
+# кровати, столы каталога проверялись, а не только перечисленные. Для имён rp_lib.CATALOG раздел известен и без
+# полного каталога (tools/reference/catalog_core.json). Группа None — весь раздел.
+M_SOFA = {("Гостиная и спальня", "Диваны"), ("Гостиная и спальня", "Модульные диваны")}
+M_BED = {("Гостиная и спальня", "Кровати"), ("Мебель для детской", "Кровати и диваны")}
+M_CHAIR = {("Гостиная и спальня", "Стулья"), ("Кухня и столовая", "Стулья"), ("Кабинет и офис", "Кресла и стулья")}
+M_DESK = {("Кабинет и офис", "Столы и стойки")}
+M_DINING = {("Кухня и столовая", "Обеденные столы")}
+M_TALL = {("Кухня и столовая", "Шкафы-пеналы")}
+M_FRIDGE = {("Бытовая техника", "Холодильники")}
+M_STOVE = {("Бытовая техника", "Кухонные плиты")}
+M_SINK = {("Раковины и мойки", None)}
+M_HINGED = {("Гардероб и прихожая", "Гардеробные шкафы"), ("Гардероб и прихожая", "Угловые шкафы"),
+            ("Гостиная и спальня", "Шкафы"), ("Мебель для ванной", "")}
+M_OPEN_WARD = {("Гардероб и прихожая", "Шкафы-купе"), ("Гардероб и прихожая", "Открытые гардеробные")}
+M_DRAWER = {("Гостиная и спальня", "Комоды и тумбы"), ("Гардероб и прихожая", "Обувницы и тумбы")}
+M_SHELF = {("Гостиная и спальня", "Стеллажи и полки"), ("Гостиная и спальня", "Крупногабаритные стеллажи")}
 
 
 def _cat(name):
-    return rp_lib.full_catalog().get(name, {})
+    """Запись каталога (без полного каталога — для имён CATALOG и confirmed.json; неизвестное имя — {})."""
+    return rp_lib.info(name)
 
 
-def skip(name):
-    e = _cat(name)
-    of = e.get("over_floor") or {}
-    return name in SKIP or of.get("value", 0) >= 100 or e.get("custom_type") == "chair"
+def in_menu(name, sections):
+    """Предмет в одной из групп меню каталога (группа None — весь раздел)."""
+    return any((m[0], m[1]) in sections or (m[0], None) in sections for m in _cat(name).get("menu", []))
 
 
-def no_target(name):
-    return name in NO_TARGET or skip(name) or _cat(name).get("custom_type") == "sink"
-
-
-def light(name):
-    e = _cat(name)
-    of = e.get("over_floor") or {}
-    return (
-        name in LIGHT
-        or name in CHAIRS
-        or of.get("value", 0) >= 100
-        or e.get("custom_type") == "chair"
+def is_chair(name):
+    """Стул, кресло к столу, барный стул или табурет — переставляемое: не мешает проходам и зонам."""
+    return bool(name) and (
+        _cat(name).get("custom_type") == "chair"
+        or in_menu(name, M_CHAIR)
+        or (in_menu(name, {("Кухня и столовая", "Барная мебель")}) and re.search(r"chair|tabouret", name) is not None)
+        or (in_menu(name, {("Мебель для детской", "Столы и стулья")}) and "chair" in name)
     )
+
+
+def is_sofa(name):
+    """Диван (с него смотрят ТВ, перед ним sofa_front); кухонный диван-скамья — место за столом, не диван."""
+    if not name or re.search(r"kitchen|armrest|pouf", name):
+        return False
+    return in_menu(name, M_SOFA) or (in_menu(name, M_BED) and "sofa" in name and "bed" not in name)
+
+
+def is_bed(name):
+    """Кровать любого размера (с неё смотрят ТВ)."""
+    return bool(name) and in_menu(name, M_BED) and not is_sofa(name)
+
+
+def bed_fronts(name):
+    """Кровать, у которой проверяются бока и изножье: без трансформеров (откидные, в шкафу) и люлек."""
+    return is_bed(name) and not re.search(r"transformer|cradle|chaiselongue", name)
+
+
+def is_tv(name):
+    return _cat(name).get("title", "").startswith("Телевизор")
+
+
+def is_desk(name):
+    """Рабочий стол: «Кабинет и офис / Столы и стойки» без стоек ресепшн и переговорных; школьная парта."""
+    return bool(name) and (
+        (in_menu(name, M_DESK) and not re.search(r"reception|meeting|briefing", name)) or name == "kid_desk"
+    )
+
+
+def is_dining(name):
+    return name in ("table", "table_round", "bar_table") or in_menu(name, M_DINING)
+
+
+def is_fridge(name):
+    return bool(name) and "fridge" in name and name != "mini_fridge"
+
+
+def is_tall_kitchen(name):
+    """Высокий кухонный модуль: пенал, холодильник в рост."""
+    return bool(name) and (
+        in_menu(name, M_TALL)
+        or is_fridge(name)
+        or (in_menu(name, M_FRIDGE) and _cat(name).get("self_height", 0) >= 120)
+    )
+
+
+def is_toilet(name):
+    return bool(name) and re.search(TOILETS, name) is not None
+
+
+def is_sink(name):
+    return bool(name) and (
+        _cat(name).get("custom_type") == "sink"
+        or name in ("sink_table_susp", "double_sink_box_floor")
+        or in_menu(name, M_SINK)
+    )
+
+
+def over_floor(s):
+    """Низ предмета над полом, см: число rp.over_floor или over_floor каталога."""
+    v = s.get("over_floor")
+    if isinstance(v, (int, float)):
+        return v
+    return (_cat(s["name"]).get("over_floor") or {}).get("value", 0) or 0
+
+
+def skip(s):
+    """Не препятствие для проходов: навесное (низ ≥ 100 см), переставляемое (SKIP, стулья). s — объект rp."""
+    return s["name"] in SKIP or over_floor(s) >= 100 or is_chair(s["name"])
+
+
+def no_target(s):
+    """Не цель прохода: NO_TARGET, навесное и переставляемое, мойка в столешнице, настенная инженерия
+    (anchor wall: бризер, щиток, кондиционер — перед ней не стоят)."""
+    e = _cat(s["name"])
+    return s["name"] in NO_TARGET or skip(s) or e.get("custom_type") == "sink" or e.get("anchor") == "wall"
+
+
+def light(s):
+    """Не мешает стоять перед другим предметом."""
+    return s["name"] in LIGHT or is_chair(s["name"]) or over_floor(s) >= 100
 
 
 def specs(f):
@@ -219,9 +319,9 @@ class Plan:
         fp, ff = bytearray(n), bytearray(n)
         self.owner = [-1] * n
         for idx, f in enumerate(p["furniture"]):
-            names = {s["name"] for s in specs(f)}
-            on_path = not (names and all(skip(nm) for nm in names))
-            on_front = not (names and all(light(nm) for nm in names))
+            sps = specs(f)
+            on_path = not (sps and all(skip(s) for s in sps))
+            on_front = not (sps and all(light(s) for s in sps))
             for i, j in cells(f["rect"]):
                 k = j * NX + i
                 if on_path:
@@ -233,16 +333,24 @@ class Plan:
         self.path = bytearray(a | b for a, b in zip(self.wall, fp))
         self.front = bytearray(a | b for a, b in zip(self.wall, ff))
         self.d = distance(self.path)
-        # у проёмов сужение не считается (ширину двери проверяет door_width)
-        self.dd = list(self.d)
-        for dr in p["doors"]:
+        self.dd = self.near_doors(self.d, self.path)
+        self.bearing = bytearray(n)  # клетки несущих стен: сужение между двумя несущими — m_passages
+        for r in p["walls_bearing"]:
+            for i, j in cells(r["rect"]):
+                self.bearing[j * NX + i] = 1
+
+    def near_doors(self, d, mask):
+        """Копия поля расстояний d, где у проёмов сужение не считается (ширину двери проверяет door_width)."""
+        dd = list(d)
+        for dr in self.p["doors"]:
             cx, cy = door_center(dr)
             rr = dr["width"] / 2 + 10
             for i, j in cells([cx - rr, cy - rr, 2 * rr, 2 * rr]):
                 x, y = xy_of(j * NX + i)
                 k = j * NX + i
-                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr and not self.path[k]:
-                    self.dd[k] = INF
+                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr and not mask[k]:
+                    dd[k] = INF
+        return dd
 
     def blocked(self, mask, x, y):
         k = k_of(x, y)
@@ -324,8 +432,9 @@ NB = ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
 
 
 def widest(d, s):
-    """Для каждой клетки — максимальная по путям минимальная d (bottleneck) от клетки s."""
+    """Для каждой клетки — максимальная по путям минимальная d (bottleneck) от клетки s и родитель на таком пути."""
     best = [-1.0] * (NX * NY)
+    par = [-1] * (NX * NY)
     best[s] = d[s]
     h = [(-d[s], s)]
     while h:
@@ -341,9 +450,37 @@ def widest(d, s):
             kk = jj * NX + ii
             v = min(nb, d[kk])
             if v > best[kk]:
-                best[kk] = v
+                best[kk], par[kk] = v, k
                 heapq.heappush(h, (-v, kk))
-    return best
+    return best, par
+
+
+def bearing_gap(P, best, par, k):
+    """Сужение на самом широком пути к клетке k — между двумя несущими стенами? Идём по родителям до клетки
+    с наименьшей d (горлышко); ближайшее к ней препятствие и препятствие с противоположной стороны — оба
+    клетки walls_bearing. Тогда шире горлышко не сделать никакой перестановкой."""
+    q, b = k, None
+    while q != -1:
+        if P.dd[q] < INF and (b is None or P.dd[q] < P.dd[b]):
+            b = q
+        q = par[q]
+    if b is None or P.dd[b] > best[k] + STEP:
+        return False
+    x, y = xy_of(b)
+    r = P.d[b] * 1.1 + 2 * STEP
+    near = []
+    for i, j in cells([x - r, y - r, 2 * r, 2 * r]):
+        c = j * NX + i
+        if P.path[c]:
+            cx, cy = xy_of(c)
+            near.append((math.hypot(cx - x, cy - y), c))
+    if not near:
+        return False
+    dist, c1 = min(near)
+    nx, ny = (xy_of(c1)[0] - x) / (dist or 1), (xy_of(c1)[1] - y) / (dist or 1)
+    back = P.ray(P.path, x, y, -nx, -ny, 2 * r + 20)
+    c2 = k_of(x - nx * (back + STEP), y - ny * (back + STEP))
+    return bool(P.bearing[c1]) and c2 is not None and bool(P.bearing[c2])
 
 
 def shortest(d, s, r):
@@ -374,27 +511,47 @@ def shortest(d, s, r):
 # ── Цели проходов ─────────────────────────────────────────────────────────────────────────────────────
 
 
-def targets(p):
+def bed_sides(P, f):
+    """Бока кровати [(сторона, lo, hi)] для зон и целей: двуспальная (изголовье ≥ 140) — оба длинных бока,
+    односпальная — один, более свободный (второй обычно у стены). lo, hi — отступы sweep по краям бока."""
+    sp = specs(f)[0]
+    x, y, w, h = f["rect"]
+    fr = FRONT[sp["back"]]
+    along_x = fr[0] != 0  # длина кровати вдоль x
+    head_lo = sp["back"] in ("left", "up")
+    lo, hi = (55, 5) if head_lo else (5, 55)
+    sides = [(0, 1), (0, -1)] if along_x else [(1, 0), (-1, 0)]
+    if (h if along_x else w) < 140:
+        sides = [max(sides, key=lambda sd: P.sweep(f["rect"], sd, lo, hi))]
+    return [(sd, lo, hi) for sd in sides]
+
+
+def targets(P):
     """(имя, rect, правило): зоны, место перед предметом, обе стороны межкомнатных дверей."""
+    p = P.p
     out = [(f"зона {z['id']}", z["rect"], "pass_any") for z in p.get("zones", [])]
     for f in p["furniture"]:
         sp = specs(f)
-        if not sp or no_target(sp[0]["name"]):
+        if not sp or no_target(sp[0]):
             continue
         sp = sp[0]
         x, y, w, h = f["rect"]
         fx, fy = FRONT[sp["back"]]
-        if sp["name"] == "bed_double":  # обе длинные стороны
-            sides = [(1, 0), (-1, 0)] if fx == 0 else [(0, 1), (0, -1)]
+        if bed_fronts(sp["name"]):  # длинные стороны: у двуспальной обе
+            sides = [sd for sd, _, _ in bed_sides(P, f)]
         else:
             sides = [(fx, fy)]
         for n, (sx, sy) in enumerate(sides):
-            if sx:  # стоим справа/слева на 30 см от грани, по всей длине грани
+            # стоим на 30 см от грани, по всей длине грани; перед узким (< SMALL_FACE) предметом — и со сдвигом
+            # вдоль фасада, как перед фасадом SMALL_FACE: в углу к миске или лотку подходят чуть сбоку
+            if sx:
                 cx = x + w + 30 if sx > 0 else x - 30
-                rect = [cx - 2, y + 10, 4, max(h - 20, 4)]
+                a0, n0 = (y, h) if h >= SMALL_FACE else (y + h / 2 - SMALL_FACE / 2, SMALL_FACE)
+                rect = [cx - 2, a0 + 10, 4, max(n0 - 20, 4)]
             else:
                 cy = y + h + 30 if sy > 0 else y - 30
-                rect = [x + 10, cy - 2, max(w - 20, 4), 4]
+                a0, n0 = (x, w) if w >= SMALL_FACE else (x + w / 2 - SMALL_FACE / 2, SMALL_FACE)
+                rect = [a0 + 10, cy - 2, max(n0 - 20, 4), 4]
             out.append(
                 (
                     f"{f['id']}" + (f" сторона {n + 1}" if len(sides) > 1 else ""),
@@ -417,22 +574,29 @@ def targets(p):
 
 
 def m_passages(P, start):
-    """Проходы и маршруты: (находки, маршруты [список клеток])."""
+    """Проходы и маршруты: (находки, маршруты [список клеток]). Находка прохода — (правило, объект, ширина, cap):
+    cap = ширина, если горлышко самого широкого пути — между двумя несущими стенами (bearing_gap), иначе None.
+    Такую уступку judge считает «из-за несущего» и баллы за неё не берёт."""
     s = k_of(*start)
-    best = widest(P.dd, s)
+    best, wpar = widest(P.dd, s)
     dist, par = shortest(P.dd, s, E.R["pass_any"].min / 2)
     out, routes, doors = [], [], {}
-    for name, rect, rule in targets(P.p):
-        free = [j * NX + i for i, j in cells(rect) if not P.path[j * NX + i]]
-        v = max((best[k] for k in free), default=-1)
+
+    def width(v):
         w = round(2 * v) if v >= 0 else -1
-        if w >= 400 or v >= INF:
-            w = 400
+        return 400 if w >= 400 or v >= INF else w
+
+    for name, rect, rule in targets(P):
+        free = [j * NX + i for i, j in cells(rect) if not P.path[j * NX + i]]
+        kb = max(free, key=lambda q: best[q], default=None)
+        w = width(best[kb] if kb is not None else -1)
+        cap = w if kb is not None and best[kb] > 0 and bearing_gap(P, best, wpar, kb) else None
         if rule == "pass_main":  # по двери одна строка — сторона, ближняя ко входу
             door = name.rsplit(" ", 1)[0]
-            doors[door] = max(doors.get(door, -1), w)
+            if w > doors.get(door, (-1, None))[0]:
+                doors[door] = (w, cap)
         else:
-            out.append((rule, name, w))
+            out.append((rule, name, w, cap))
         reach = [k for k in free if dist[k] < math.inf]
         if reach:
             k = min(reach, key=lambda q: dist[q])
@@ -442,34 +606,45 @@ def m_passages(P, start):
                 k = par[k]
             routes.append(r[::-1])
     # двери, в которые не попасть, ловит pass_any других целей
-    out += [("pass_main", d, w) for d, w in doors.items() if w >= 0]
+    out += [("pass_main", d, w, cap) for d, (w, cap) in doors.items() if w >= 0]
     return out, routes
 
 
-def front_rule(nm):
-    """Правило зоны перед предметом по имени каталога."""
+def front_rule(nm, s=None):
+    """Правило зоны перед предметом: по имени каталога (явные наборы), затем по роли и разделу меню.
+    s — объект rp: навесное (низ ≥ 100 см) зоны перед собой не требует."""
     if not nm:
         return None
     if nm in HINGED:
         return "ward_hinged_front"
     if "ward" in nm:
         return "ward_front"
-    if nm in ("commode", "shoes_closet", "low_cabinet_sideboard", "chest_for_sink"):
+    if nm in DRAWERS:
         return "drawer_front"
-    if nm in ("bookshelf", "stillage_floor_book"):
+    if nm in SHELVES:
         return "shelf_front"
-    if nm == "kitchen_run" or nm in TALL_KITCHEN or nm == "stove":
+    if nm == "kitchen_run" or is_tall_kitchen(nm) or nm == "stove" or in_menu(nm, M_STOVE):
         return "kitchen_front"
-    if nm == "washing_machine":
+    if re.search(WASHERS, nm):
         return "washer_front"
-    if nm in ("toilet", "toilet_with_frame"):
+    if is_toilet(nm):
         return "wc_front"
-    if _cat(nm).get("custom_type") == "sink" or nm in ("sink_table_susp", "double_sink_box_floor"):
+    if is_sink(nm):
         return "sink_front"
-    if nm in ("sofa_triple", "sofa_double"):
+    if is_sofa(nm):
         return "sofa_front"
-    if nm == "writingdesk_drawers":
+    if is_desk(nm):
         return "desk_back"
+    if over_floor(s or {"name": nm}) >= 100:
+        return None
+    if in_menu(nm, M_HINGED) and "open" not in nm:
+        return "ward_hinged_front"
+    if in_menu(nm, M_OPEN_WARD) or in_menu(nm, M_HINGED):
+        return "ward_front"
+    if in_menu(nm, M_DRAWER) and not re.search(r"bedside|tele_stand|tv_table", nm):
+        return "drawer_front"  # прикроватные тумбы — у бока кровати, его проверяет bed_side
+    if in_menu(nm, M_SHELF):
+        return "shelf_front"
     return None
 
 
@@ -479,7 +654,8 @@ def m_fronts(P):
     furn = P.p["furniture"]
     groups = {}
     for n, f in enumerate(furn):
-        groups.setdefault(front_rule(kind(f)), set()).add(n)
+        sp = specs(f)
+        groups.setdefault(front_rule(kind(f), sp[0] if sp else None), set()).add(n)
     storage = set()
     for g in ("ward_front", "ward_hinged_front", "shelf_front"):
         storage |= groups.get(g, set())
@@ -492,20 +668,18 @@ def m_fronts(P):
         nm, back = sp[0]["name"], sp[0]["back"]
         x, y, w, h = f["rect"]
         fr = FRONT[back]
-        if nm == "bed_double":
-            along_x = fr[0] != 0  # длина кровати вдоль x
-            head_lo = back in ("left", "up")
-            lo, hi = (55, 5) if head_lo else (5, 55)
-            sides = [(0, 1), (0, -1)] if along_x else [(1, 0), (-1, 0)]
-            for n, sd in enumerate(sides):
-                out.append(("bed_side", f"{f['id']} бок {n + 1}", P.sweep(f["rect"], sd, lo, hi)))
+        if bed_fronts(nm):
+            sides = bed_sides(P, f)
+            for n, (sd, lo, hi) in enumerate(sides):
+                label = f"бок {n + 1}" if len(sides) > 1 else "бок"
+                out.append(("bed_side", f"{f['id']} {label}", P.sweep(f["rect"], sd, lo, hi)))
             out.append(("bed_foot", f"{f['id']} изножье", P.sweep(f["rect"], fr, 20, 20)))
             continue
-        rule = front_rule(nm)
+        rule = front_rule(nm, sp[0])
         if rule:
             joint = groups.get(rule, ())  # стык углом с соседом той же группы — не помеха
             out.append((rule, f["id"], P.sweep(f["rect"], fr, 10, 10, joint)))
-        if rule in ("wc_front", "sink_front") and nm != "double_sink_box_floor":
+        if rule in ("wc_front", "sink_front") and "double" not in nm:  # у двойной раковины оси две
             # от оси до препятствия с каждой стороны; «слева/справа» — стоя лицом к прибору, как на снимке
             # RemPlanner (JSON отражён по вертикали — mirror_vertical — и стороны меняются местами)
             half = (w if fr[0] == 0 else h) / 2
@@ -518,9 +692,9 @@ def m_fronts(P):
                 v = P.sweep(f["rect"], sd, 2, 2)
                 out.append((rule.replace("front", "side"), f"{f['id']} {word}", round(half + v)))
         # обеденный стол: от кромки за стул до препятствия
-        if nm in ("table", "table_round", "bar_table"):
+        if is_dining(nm):
             for c in furn:
-                if kind(c) not in CHAIRS:
+                if not is_chair(kind(c)):
                     continue
                 cx, cy, cw, ch = c["rect"]
                 for sd in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -553,12 +727,23 @@ def door_sector(d, theta):
     ]
 
 
+def windoor_doors(p):
+    """id дверей балконных блоков (windows[].windoor_door) — проём в несущей стене, как у входной."""
+    return {w["windoor_door"] for w in p.get("windows", []) if w.get("windoor_door")}
+
+
+def leaf_doors(p):
+    """Двери со створкой, которую проверяют door_open и правила открытого полотна: без входной (как есть, в нише
+    несущей стены; её swing — «внутрь», а не сторона открывания) и без doorway (проём или купе, створки нет)."""
+    return [d for d in p["doors"] if not is_entry(d) and d.get("kind") != "doorway"]
+
+
 def m_doors(P):
     out = []
-    # входная — как есть, в нише несущей стены; doorway — проём или раздвижные полотна, створки нет
-    doors = [d for d in P.p["doors"] if not is_entry(d) and d.get("kind") != "doorway"]
-    for d in doors:
-        out.append(("door_width", d["id"], d["width"]))
+    balcony = windoor_doors(P.p)
+    for d in leaf_doors(P.p):
+        if d["id"] not in balcony:  # ширину проёма в несущей стене не выбирают
+            out.append(("door_width", d["id"], d["width"]))
         ang = 90
         hx, hy = d["hinge"]
         for t in range(5, 91):
@@ -571,7 +756,7 @@ def m_doors(P):
                 ang = t - 1
                 break
         out.append(("door_open", d["id"], ang))
-    # створки двух дверей пересекаются
+    # створки двух дверей пересекаются; створка заходит в соседний проём без полотна (doorway)
     swept = {}
     for d in [d for d in P.p["doors"] if d.get("kind") != "doorway"]:
         s = set()
@@ -586,6 +771,76 @@ def m_doors(P):
         for b in range(a + 1, len(ids)):
             if swept[ids[a]] & swept[ids[b]]:
                 out.append(("door_clash", f"{ids[a]} × {ids[b]}", 1))
+    for o in [d for d in P.p["doors"] if d.get("kind") == "doorway"]:
+        (hx, hy), (ox, oy) = o["hinge"], o["other"]
+        hole = [min(hx, ox), hy - 5, abs(ox - hx), 10] if hy == oy else [hx - 5, min(hy, oy), 10, abs(oy - hy)]
+        cs = {j * NX + i for i, j in cells(hole)}
+        for i in ids:
+            if swept[i] & cs:
+                out.append(("door_clash", f"{i} × {o['id']} (проём)", 1))
+    return out
+
+
+LEAF_FRONT = ("ward_hinged_front", "drawer_front", "kitchen_front", "washer_front")  # фасад открывается вперёд
+
+
+def m_leaves(P, routes):
+    """Открытое на 90° полотно (от петли по swing, длина — ширина двери):
+    - door_leaf_pass — маршрут от входа пересекает полотно или промежуток за его краем: сколько остаётся прохода
+      от края полотна до препятствия (полотно поперёк коридора);
+    - door_leaf_front — полотно перед фасадом, который открывается вперёд (LEAF_FRONT: распашной шкаф, ящики,
+      кухня и пеналы, стиральная машина): от фасада до полотна, если между ними нет стены."""
+    out = []
+    furn = P.p["furniture"]
+    fronts = []
+    for f in furn:
+        sp = specs(f)
+        if sp and front_rule(sp[0]["name"], sp[0]) in LEAF_FRONT:
+            fronts.append((f, FRONT[sp[0]["back"]]))
+    for d in leaf_doors(P.p):
+        (hx, hy), (ox, oy) = d["hinge"], d["other"]
+        w = math.hypot(ox - hx, oy - hy)
+        sx, sy = d["swing"]
+        tx, ty = hx + sx * (w + 1), hy + sy * (w + 1)  # край открытого полотна
+        gap = P.ray(P.path, tx, ty, sx, sy)
+        # маршрут пересекает линию полотна (ось петли поперёк стены) на участке от петли до препятствия
+        ux, uy = (ox - hx) / w, (oy - hy) / w
+        reach = w + 1 + gap
+        crossed = False
+        for rt in routes:
+            prev = None
+            for k in rt:
+                x, y = xy_of(k)
+                a = (x - hx) * ux + (y - hy) * uy  # вдоль стены от петли (> 0 — в сторону проёма)
+                t = (x - hx) * sx + (y - hy) * sy  # от стены по swing
+                if prev is not None and (prev[0] < 0) != (a < 0) and 3 <= min(t, prev[1]) and max(t, prev[1]) <= reach:
+                    crossed = True
+                    break
+                prev = (a, t)
+            if crossed:
+                break
+        if crossed:
+            out.append(("door_leaf_pass", f"{d['id']} открыта", round(min(gap, 400))))
+        for f, (fx, fy) in fronts:
+            x, y, fw, fh = f["rect"]
+            best = None
+            for r in range(3, int(w) + 1, STEP):
+                px, py = hx + sx * (r + 1), hy + sy * (r + 1)
+                if fx:  # фасад смотрит по x
+                    face = x + fw if fx > 0 else x
+                    dist, along, lo, hi = (px - face) * fx, py, y, y + fh
+                    fp = (face + fx * 0.5, py)
+                else:
+                    face = y + fh if fy > 0 else y
+                    dist, along, lo, hi = (py - face) * fy, px, x, x + fw
+                    fp = (px, face + fy * 0.5)
+                if not (0 <= dist < 150 and lo + 5 < along < hi - 5):
+                    continue  # полотно вдоль боковой грани — не перед фасадом
+                if P.ray(P.wall, fp[0], fp[1], fx, fy, 150) < dist - STEP:
+                    continue  # между фасадом и полотном стена
+                best = dist if best is None else min(best, dist)
+            if best is not None:
+                out.append(("door_leaf_front", f"{d['id']} открыта → {f['id']}", round(best)))
     return out
 
 
@@ -664,16 +919,21 @@ def kitchen_modules(f):
     sp = specs(f)[0]
     a, out = 0, []
     for m in sp["modules"]:
-        n = 60 if m in KITCHEN else _cat(m)["width"]
+        n = 60 if m in KITCHEN else _cat(m).get("width", 60)
         out.append((m, a, a + n))
         a += n
     return out
 
 
+def has_top(m):
+    """Над модулем линии кухни лежит столешница — как в remplanner_export.kitchen_run."""
+    return (m in KITCHEN and m != "stove") or _cat(m).get("custom_type") == "table_top"
+
+
 def m_kitchen(P):
     out = []
     furn = P.p["furniture"]
-    fridges = [f for f in furn if kind(f) in FRIDGES]
+    fridges = [f for f in furn if is_fridge(kind(f))]
     sinks, stoves = [], []
     for f in furn:
         if kind(f) != "kitchen_run":
@@ -694,17 +954,19 @@ def m_kitchen(P):
         for n, (m, a0, a1) in enumerate(mods):
             if m == "sink" or _cat(KITCHEN.get(m, m)).get("custom_type") == "sink":
                 sinks.append((f, at((a0 + a1) / 2), a0, a1))
-            if m == "stove" or KITCHEN.get(m, m) in ("stove", "hob"):
+            if m == "stove" or KITCHEN.get(m, m) == "hob" or in_menu(KITCHEN.get(m, m), M_STOVE):
                 stoves.append((f, at((a0 + a1) / 2), a0, a1))
         for _, (sx, sy), a0, a1 in [s for s in stoves if s[0] is f]:
-            # столешница по бокам плиты: до мойки, высокого модуля или конца линии
+            # столешница по бокам плиты — до препятствия: мойки, другой плиты, модуля без столешницы (высокий пенал,
+            # отдельностоящая техника) или конца линии; над модулем со столешницей (шкаф, посудомойка,
+            # стиральная машина) рабочее место продолжается
             def counter(direction, a_start):
-                a, L = a_start, 0
+                L = 0
                 seq = mods if direction > 0 else mods[::-1]
                 for m, b0, b1 in seq:
                     if (direction > 0 and b0 < a_start) or (direction < 0 and b1 > a_start):
                         continue
-                    if m in ("stove", "sink", "washer"):
+                    if m in ("stove", "sink") or not has_top(m) or _cat(KITCHEN.get(m, m)).get("custom_type") == "sink":
                         return L
                     L += b1 - b0
                 if direction > 0:
@@ -751,7 +1013,7 @@ def m_tv(P):
     out = []
     furn = P.p["furniture"]
     for tv in furn:
-        if kind(tv) not in ("tv", "tele_on_mobile_stand"):
+        if not is_tv(kind(tv)):
             continue
         tx, ty, tw, th = tv["rect"]
         width = max(tw, th)
@@ -760,12 +1022,12 @@ def m_tv(P):
         best = None
         for s in furn:
             nm = kind(s)
-            if nm not in SEATS:
+            if not (is_sofa(nm) or is_bed(nm)):
                 continue
             x, y, w, h = s["rect"]
             fx, fy = FRONT[specs(s)[0]["back"]]
             # глаза: в 40 см от спинки (диван) / 35 от изголовья (кровать)
-            off = 35 if nm == "bed_double" else 40
+            off = 35 if is_bed(nm) else 40
             if fx:
                 ex = (x + off) if fx > 0 else (x + w - off)
                 ey = y + h / 2
@@ -803,7 +1065,7 @@ def m_desk(P):
     out = []
     wins = P.p.get("windows", [])
     for f in P.p["furniture"]:
-        if kind(f) != "writingdesk_drawers":
+        if not is_desk(kind(f)):
             continue
         x, y, w, h = f["rect"]
         fx, fy = FRONT[specs(f)[0]["back"]]
@@ -832,6 +1094,7 @@ def measure(p, start=None):
         passes
         + m_fronts(P)
         + m_doors(P)
+        + m_leaves(P, routes)
         + m_corners(P, routes)
         + m_kitchen(P)
         + m_tv(P)
@@ -841,7 +1104,8 @@ def measure(p, start=None):
 
 def check(path):
     p = json.load(open(path, encoding="utf-8"))
-    return E.judge(measure(p), p.get("ergo_waivers", {}))
+    rp_lib.check_names(p, path)
+    return E.judge(measure(p), p.get("ergo_waivers", {}), p.get("structural_waivers", {}))
 
 
 if __name__ == "__main__":

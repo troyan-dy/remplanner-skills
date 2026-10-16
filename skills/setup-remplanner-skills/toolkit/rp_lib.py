@@ -6,6 +6,11 @@
 Предметы: CATALOG — сверены с образцами; полный каталог — tools/catalog/remplanner_catalog.json
 (собирается `python3 tools/rp_catalog.py fetch`); подтверждённые снимком пользователя —
 tools/catalog/confirmed.json (confirmed_names()).
+
+Без полного каталога работают предметы CATALOG и confirmed.json: сведения каталога о них (габарит по умолчанию,
+over_floor, custom_type, подводки, раздел меню) — в tools/reference/catalog_core.json (выписка из полного
+каталога, `python3 tools/rp_catalog.py core`) и в поле "catalog" записи confirmed.json (`rp_catalog.py confirm`).
+Полный каталог нужен только для прочих имён: entry() / info() / check_names().
 """
 
 import copy
@@ -21,6 +26,8 @@ REF = os.path.join(TOOLS, "reference")
 CAT_DIR = os.path.join(TOOLS, "catalog")
 CATALOG_JSON = os.path.join(CAT_DIR, "remplanner_catalog.json")
 CONFIRMED_JSON = os.path.join(CAT_DIR, "confirmed.json")
+CORE_JSON = os.path.join(REF, "catalog_core.json")  # записи полного каталога для имён CATALOG
+FETCH = "python3 tools/rp_catalog.py fetch"
 
 # Каталог предметов: значения item_id / plan / self_height / доп. поля — из
 # tools/reference/remplanner_example_v3_catalog.plan (кроме toilet / sink_table_susp — из ..._objects.plan).
@@ -191,18 +198,41 @@ CATALOG = {
     "ward": dict(item_id=150, plan={"furniture": 6}, self_height=230, over_floor={"value": 0, "display": False}),
 }
 
+# Модули линии кухни (kitchen_run): сокращение → имя каталога; по 60 см, столешница — над всеми, кроме плиты.
+KITCHEN = {
+    "box": "kitchen_box_door_double",
+    "sink": "kitchen_box_door_double",
+    "stove": "stove",
+    "washer": "washing_machine",
+    "dishwasher": "kitchen_box_dishwasher",
+}
+
 _full = None
+
+
+def has_full():
+    """Собран ли полный каталог tools/catalog/remplanner_catalog.json."""
+    return os.path.exists(CATALOG_JSON)
 
 
 def full_catalog():
     global _full
     if _full is None:
-        if not os.path.exists(CATALOG_JSON):
-            raise SystemExit(
-                f"нет полного каталога {CATALOG_JSON} — запустите python3 tools/rp_catalog.py fetch"
-            )
+        if not has_full():
+            raise SystemExit(f"нет полного каталога {CATALOG_JSON} — запустите {FETCH}")
         _full = json.load(open(CATALOG_JSON, encoding="utf-8"))["items"]
     return _full
+
+
+_core = None
+
+
+def core():
+    """Записи полного каталога для имён CATALOG (tools/reference/catalog_core.json) — работают без fetch."""
+    global _core
+    if _core is None:
+        _core = json.load(open(CORE_JSON, encoding="utf-8")) if os.path.exists(CORE_JSON) else {}
+    return _core
 
 
 _confirmed = None
@@ -210,8 +240,10 @@ _confirmed = None
 
 def confirmed():
     """Предметы, которые пользователь подтвердил снимком RemPlanner после импорта:
-    tools/catalog/confirmed.json — {"<name>": {"date": "ГГГГ-ММ-ДД", "note": "..."}}; файла может не быть.
-    Нужен потому, что tools/ перезаписывается установкой и CATALOG пользователь не дописывает."""
+    tools/catalog/confirmed.json — {"<name>": {"date": "ГГГГ-ММ-ДД", "note": "...", "catalog": {…}}}; файла может
+    не быть. "catalog" — копия записи полного каталога (её пишет `rp_catalog.py confirm`): с ней предмет
+    работает и без полного каталога. Нужен потому, что tools/ перезаписывается установкой и CATALOG
+    пользователь не дописывает."""
     global _confirmed
     if _confirmed is None:
         _confirmed = {}
@@ -225,12 +257,56 @@ def confirmed_names():
     return set(CATALOG) | set(confirmed())
 
 
+def entry(name):
+    """Запись каталога о предмете: из полного каталога, если он собран; иначе из выписки для CATALOG
+    (catalog_core.json) или из confirmed.json (поле "catalog"). None — сведений нет."""
+    if has_full():
+        return full_catalog().get(name)
+    return core().get(name) or (confirmed().get(name) or {}).get("catalog")
+
+
+def info(name):
+    """Как entry(), но {} вместо None: для проверок, которым хватает «нет сведений» (линия кухни, опечатка)."""
+    return (entry(name) if name else None) or {}
+
+
+def plan_names(plan):
+    """[(где, имя)] — все имена каталога в плане: rp.name и модули kitchen_run (кроме сокращений KITCHEN)."""
+    out = []
+    for f in plan.get("furniture", []):
+        sp = f.get("rp")
+        for s in (sp if isinstance(sp, list) else [sp]) if sp else []:
+            if s["name"] == "kitchen_run":
+                out += [(f"furniture {f['id']}: модуль kitchen_run", m) for m in s.get("modules", []) if m not in KITCHEN]
+            else:
+                out.append((f"furniture {f['id']}", s["name"]))
+    return out
+
+
+def check_names(plan, label):
+    """Все предметы плана известны: без полного каталога — только CATALOG и confirmed.json с записью "catalog".
+    Иначе SystemExit с перечнем предметов (id и rp.name) и командой fetch."""
+    bad = [(w, n) for w, n in plan_names(plan) if entry(n) is None]
+    if not bad:
+        return
+    rows = "\n".join(f"  {w}: rp.name {n!r}" for w, n in bad)
+    if has_full():
+        raise SystemExit(f"{label}: нет в каталоге RemPlanner:\n{rows}\n"
+                         "имена — python3 tools/rp_catalog.py find <слово>")
+    raise SystemExit(f"{label}: предметы не из rp_lib.CATALOG и не из tools/catalog/confirmed.json, "
+                     f"а полного каталога нет:\n{rows}\nсоберите его: {FETCH} "
+                     "(или возьмите имена из CATALOG — python3 tools/blocks.py)")
+
+
 def spec(name):
-    """Параметры предмета: из CATALOG (сверено с образцами), иначе из полного каталога
-    tools/catalog/remplanner_catalog.json (tools/rp_catalog.py) — только группы plan.items."""
+    """Параметры предмета: из CATALOG (сверено с образцами), иначе из записи каталога (entry) —
+    только группы plan.items."""
     if name in CATALOG:
         return CATALOG[name]
-    e = full_catalog()[name]
+    e = entry(name)
+    if e is None:
+        raise SystemExit(f"предмет {name!r}: нет сведений — нужен полный каталог ({FETCH})"
+                         if not has_full() else f"предмет {name!r}: нет в каталоге RemPlanner")
     if not e["in_items"]:
         raise ValueError(f"{name}: группа {e['group']} — схема в .plan не получена")
     s = dict(item_id=e["id"], plan=e["plan"], self_height=e["self_height"])
@@ -503,7 +579,9 @@ def item(name, cx, cy, width=None, height=None, angle=0, **over):
     (cx, cy) — центр габарита; для моделей из PC_SHIFT pc сдвигается от спинки, значок остаётся в габарите."""
     c = spec(name)
     if width is None or height is None:
-        e = full_catalog()[name]
+        e = info(name)
+        if not e:
+            spec(name)  # SystemExit: сведений о предмете нет
         dw, dh = e["width"], e["height"]
         width, height = width or dw, height or dh
     i = uid()

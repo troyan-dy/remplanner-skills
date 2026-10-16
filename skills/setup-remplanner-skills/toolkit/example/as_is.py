@@ -41,8 +41,8 @@ def as_is():
     p["furniture"] += [
         F("wc", [217, 530, 38, 65], "унитаз", "toilet", "down"),
         F("bathtub", [25, 525, 160, 70], "ванна 160", "bathtub", "down"),
-        F("sink", [25, 385, 60, 50], "раковина", "sink_box_floor", "up"),
-        F("washer", [95, 385, 60, 45], "стиральная машина", "washing_machine", "up"),
+        F("sink", [49, 385, 60, 40], "раковина", "sink_box_floor", "up"),
+        F("washer", [133, 385, 60, 45], "стиральная машина", "washing_machine", "up"),
         F("fridge", [615, 25, 60, 60], "холодильник 60", "fridge", "right"),
         F("kitchen", [615, 85, 60, 290], "кухня: тумба, мойка, тумба, плита", "kitchen_run", "right",
           modules=["box", "sink", "box", "stove"]),
@@ -55,7 +55,7 @@ def as_is():
     ]
     p["zones"] += [
         zone("z-wc", [217, 465, 38, 65], "перед унитазом"),
-        zone("z-sink", [25, 435, 60, 70], "перед раковиной"),
+        zone("z-sink", [49, 425, 60, 70], "перед раковиной"),
     ]
     p["rooms"] += [
         room("kitchen-living", "Комната с кухней", area(LIVING), LIVING, bti=22.8),
