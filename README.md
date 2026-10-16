@@ -140,13 +140,14 @@ my-flat/
   rules.json              проверяемые числа из опроса и замечаний
   plan/
     source/               скан или фото плана БТИ, экспликация, замеры
-    as_is.json            квартира «как есть»: каркас и текущая расстановка
+    as_is.json            квартира «как есть»: каркас и текущая расстановка (строит src/as_is.py)
     as_is.plan            то же для RemPlanner
   src/
+    as_is.py              генератор плана «как есть»
     concepts_run01.py     генератор серии; следующие серии импортируют блоки из прошлых
   concepts/
-    run-01_2026-10-16/    <name>.json, <name>_remplanner.plan, README.md
-  screenshots/            run-01_<name>.png — все снимки подряд
+    run-01_2026-10-16/    <name>.json, <name>.plan, README.md
+  screenshots/            as_is.png, run-01_<name>.png — все снимки подряд
   tools/                  инструменты из набора (обновляет setup)
 ```
 
@@ -156,7 +157,7 @@ my-flat/
 (несущее: `facade`, `interapartment`, `column`, неприкосновенно), `partitions`, `windows`, `doors`,
 `fixed_elements` (стояки, вентканалы), `furniture` (с привязкой `rp` к каталогу RemPlanner), `zones`
 (свободные зоны перед сантехникой и мебелью), `rooms`. Полное описание — в
-[skills/setup-remplanner-skills/toolkit/PLAN_FORMAT.md](skills/setup-remplanner-skills/toolkit/PLAN_FORMAT.md).
+[PLAN_FORMAT.md](skills/setup-remplanner-skills/toolkit/reference/PLAN_FORMAT.md) (в проекте — `tools/reference/PLAN_FORMAT.md`).
 
 ## Ограничения
 

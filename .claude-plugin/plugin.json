@@ -16,5 +16,18 @@
     "ergonomics",
     "bti"
   ],
-  "skills": []
+  "skills": [
+    "./skills/setup-remplanner-skills",
+    "./skills/trace-bti",
+    "./skills/interview-household",
+    "./skills/plan-concepts",
+    "./skills/plan-feedback",
+    "./skills/remplanner-primitive",
+    "./skills/ask-planner",
+    "./skills/check-plan",
+    "./skills/critique-plan",
+    "./skills/remplanner-export",
+    "./skills/remplanner-catalog",
+    "./skills/remplanner-screenshots"
+  ]
 }
