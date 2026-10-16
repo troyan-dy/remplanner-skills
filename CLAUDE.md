@@ -29,3 +29,5 @@
 
 `python3 skills/setup-remplanner-skills/toolkit/selftest.py` — разворачивает проект с примером
 во временной папке и прогоняет генераторы, экспорт и обе проверки; после правки инструментов — `selftest: ok`.
+Экспорту нужен каталог: если его нет, сначала `python3 skills/setup-remplanner-skills/toolkit/rp_catalog.py fetch`
+(так же делает CI).

@@ -16,4 +16,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      # каталог RemPlanner не коммитим: собираем из публичного JS, как у пользователя
+      - run: python skills/setup-remplanner-skills/toolkit/rp_catalog.py fetch
       - run: python skills/setup-remplanner-skills/toolkit/selftest.py
