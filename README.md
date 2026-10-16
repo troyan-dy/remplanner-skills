@@ -27,7 +27,7 @@ claude plugin install remplanner-skills@remplanner-skills
 npx skills@latest add troyan-dy/remplanner-skills
 ```
 
-Нужен Python 3.10+ без сторонних пакетов. Для снимков RemPlanner — Chrome с расширением Claude in Chrome
+Нужен Python 3.9+ без сторонних пакетов. Для снимков RemPlanner — Chrome с расширением Claude in Chrome
 (без него всё работает, кроме снимков).
 
 ## Быстрый старт

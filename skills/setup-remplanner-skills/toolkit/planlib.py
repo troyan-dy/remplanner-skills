@@ -23,6 +23,9 @@
     if __name__ == "__main__":
         save({"concept_a": concept_a()}, series_dir(1, "2026-01-31"))
 
+План «как есть» (src/as_is.py) строится так же, но с нуля: skeleton, bearing, window, fixed —
+образец tools/example/as_is.py; save({"as_is": p}, os.path.join(ROOT, "plan")).
+
 Дальше: python3 tools/remplanner_export.py concepts/run-01_*/*.json и проверки tools/check_layout.py,
 tools/check_rules.py по тем же файлам.
 """
@@ -114,14 +117,50 @@ def D(did, width, hinge, other, swing, note=None, kind=None, h=None, entry=False
     return d
 
 
-def room(rid, name, area, rect=None, note=None):
-    """Помещение: area в м² (округляется до 0,01); rect нужен проверкам мокрых комнат, спальни, комнаты со столом."""
+def room(rid, name, area, rect=None, note=None, bti=None):
+    """Помещение: area в м² (округляется до 0,01); rect нужен проверкам мокрых комнат, спальни, комнаты со столом.
+    bti — площадь по экспликации БТИ, м²: save печатает разницу с area (сверка чертежа «как есть»)."""
     r = {"id": rid, "name": name, "area": round(area, 2)}
     if rect:
         r["rect"] = rect
     if note:
         r["note"] = note
+    if bti is not None:
+        r["bti_area"] = bti
     return r
+
+
+def skeleton(title, ceiling_height=None, source=None):
+    """Пустой план для src/as_is.py: meta и пустые разделы. Образец — tools/example/as_is.py."""
+    meta = {"units": "cm", "title": title}
+    if ceiling_height:
+        meta["ceiling_height"] = ceiling_height
+    if source:
+        meta["source"] = source
+    keys = ("walls_bearing", "partitions", "windows", "doors", "fixed_elements", "furniture", "zones", "rooms")
+    return {"meta": meta, **{k: [] for k in keys}}
+
+
+def bearing(wid, rect, kind, note=None):
+    """Несущая стена (walls_bearing): kind — facade (наружная), interapartment (межквартирная),
+    bearing (внутренняя несущая), column (колонна, пилон, бетонный массив)."""
+    if kind not in ("facade", "interapartment", "bearing", "column"):
+        raise ValueError(f"{wid}: kind {kind!r} — нужен facade, interapartment, bearing или column")
+    w = {"id": wid, "rect": rect, "kind": kind}
+    if note:
+        w["note"] = note
+    return w
+
+
+def window(wid, rect, h=150, sill=85, windoor_door=None, note=None):
+    """Окно: rect — в толще стены, длина — ширина проёма. Балконный блок: rect — только оконная часть,
+    windoor_door — id двери блока в doors, проём двери вплотную к окну."""
+    w = {"id": wid, "rect": rect, "h": h, "sill": sill}
+    if windoor_door:
+        w["windoor_door"] = windoor_door
+    if note:
+        w["note"] = note
+    return w
 
 
 def zone(zid, rect, name):
@@ -152,9 +191,9 @@ def waive(p, **kw):
     p.setdefault("ergo_waivers", {}).update({k.replace("__", ":"): v for k, v in kw.items()})
 
 
-def area(rect):
-    """Площадь прямоугольника [x, y, w, h] в см → м²."""
-    return rect[2] * rect[3] / 1e4
+def area(*rects, minus=()):
+    """Площадь в м²: сумма прямоугольников [x, y, w, h] (см) минус прямоугольники minus (вентблок, короб, ниша)."""
+    return (sum(r[2] * r[3] for r in rects) - sum(r[2] * r[3] for r in minus)) / 1e4
 
 
 def series_dir(nn, date):
@@ -170,5 +209,8 @@ def save(plans, out_dir):
     for name, p in items:
         path = os.path.join(out_dir, name + ".json")
         json.dump(p, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        rooms = ", ".join(f"{r['id']} {r['area']:.2f}" for r in p.get("rooms", []))
+        rooms = ", ".join(
+            f"{r['id']} {r['area']:.2f}" + (f" (БТИ {r['bti_area']:.2f}, {r['area'] - r['bti_area']:+.2f})"
+                                            if r.get("bti_area") is not None else "")
+            for r in p.get("rooms", []))
         print(f"{os.path.relpath(path, ROOT)}: {rooms or 'комнат нет'}")
