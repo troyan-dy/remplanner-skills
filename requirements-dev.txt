@@ -1,0 +1,3 @@
+# Только для разработки набора: линтер (конфиг — setup.cfg). Инструментам в tools/ сторонние пакеты не нужны.
+# wemake-python-styleguide требует Python ≥ 3.10.
+wemake-python-styleguide>=1.8.1
