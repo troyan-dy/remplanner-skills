@@ -7,13 +7,15 @@ on:
 
 jobs:
   selftest:
-    runs-on: ubuntu-latest
+    # setup-python собирает 3.9 только под Ubuntu 22.04/24.04 — не отдаём выбор ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python: ["3.9", "3.13"]
+        # нижняя граница набора (CLAUDE.md) и последний стабильный Python
+        python: ["3.9", "3.15"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
       # каталог RemPlanner не коммитим: собираем из публичного JS, как у пользователя
