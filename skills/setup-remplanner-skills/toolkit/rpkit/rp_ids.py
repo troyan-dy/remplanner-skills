@@ -16,7 +16,8 @@ class _IdPool:
     def next_id(self):
         """Новый id, которого ещё не было в плане."""
         while True:
-            candidate = "_" + "".join(random.choices(ID_ALPHABET, k=ID_LENGTH))  # noqa: S311, WPS336
+            suffix = "".join(random.choices(ID_ALPHABET, k=ID_LENGTH))
+            candidate = f"_{suffix}"
             if candidate not in self._used:
                 self._used.add(candidate)
                 return candidate

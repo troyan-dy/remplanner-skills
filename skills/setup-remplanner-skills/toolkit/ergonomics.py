@@ -74,7 +74,8 @@ class Rule:
                 return float(0)
         if self.min is None or self.min == self.want:
             return self.weight
-        share = abs(want - measured) / abs(self.want - self.min)
+        gap = abs(want - measured)
+        share = gap / abs(self.want - self.min)
         return self.weight * min(1.0, share)
 
 

@@ -138,7 +138,7 @@ def D(did, width, hinge, other, swing, note=None, kind=None, h=None, entry=False
     return with_optional(door, optional)
 
 
-def room(rid, name, area, rect=None, note=None, bti=None):  # noqa: WPS211, WPS442 — публичный API
+def room(rid, name, area, rect=None, note=None, bti=None):  # noqa: WPS211 — публичный API
     """Помещение: area в м² (округляется до 0,01); rect нужен проверкам мокрых комнат, спальни, комнаты со столом.
     bti — площадь по экспликации БТИ, м²: save печатает разницу с area (сверка чертежа «как есть»)."""
     record = {ID: rid, NAME: name, "area": round(area, 2)}
