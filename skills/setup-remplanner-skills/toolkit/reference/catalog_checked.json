@@ -1,0 +1,127 @@
+{
+ "_note": "rp_lib.CATALOG — предметы, сверенные с образцами .plan и снимками RemPlanner: item_id, plan, self_height и доп. поля, которые экспортёр переносит в предмет как есть. Порядок групп и предметов сохраняется.",
+ "groups": [
+  {
+   "source": "tools/reference/remplanner_example_v3_catalog.plan (toilet и sink_table_susp — из remplanner_example_v3_objects.plan)",
+   "items": {
+    "bed_double": {"item_id": 97, "plan": {"furniture": 6}, "self_height": 77},
+    "sofa_triple": {"item_id": 93, "plan": {"furniture": 6}, "self_height": 85},
+    "ward_coupe": {"item_id": 152, "plan": {"furniture": 6}, "self_height": 230, "over_floor": {"value": 0, "display": false}},
+    "bedside_table": {"item_id": 162, "plan": {"furniture": 6}, "self_height": 68},
+    "tv": {"item_id": 91, "plan": {"furniture": 6}, "self_height": 51, "over_floor": {"value": 110, "display": true}, "on_tv_diagonal": 1, "tv_diagonal": 41},
+    "tv_table": {"item_id": 167, "plan": {"furniture": 6}, "self_height": 48},
+    "table": {"item_id": 89, "plan": {"furniture": 6}, "self_height": 75},
+    "chair": {"item_id": 107, "plan": {"furniture": 6}, "self_height": 77},
+    "writingdesk_drawers": {"item_id": 801, "plan": {"furniture": 6}, "self_height": 75},
+    "office_chair": {"item_id": 106, "plan": {"furniture": 6}, "self_height": 112},
+    "fridge": {"item_id": 100, "plan": {"furniture": 6}, "self_height": 190, "on_show_decoration": 1},
+    "stove": {"item_id": 102, "plan": {"furniture": 6}, "self_height": 85},
+    "kitchen_box_door_double": {"item_id": 1714, "plan": {"furniture": 6}, "self_height": 85},
+    "worktop": {"item_id": 159, "plan": {"furniture": 6}, "self_height": 4, "over_floor": {"value": 81, "display": false}},
+    "kitchen_sink": {"item_id": 169, "plan": {"santeh": 7, "furniture": 6}, "self_height": 0, "over_floor": {"value": 85, "display": false}},
+    "toilet": {"item_id": 135, "plan": {"santeh": 7}, "self_height": 79},
+    "sink_table_susp": {"item_id": 1694, "plan": {"santeh": 7}, "self_height": 38, "over_floor": {"value": 47, "display": false}},
+    "bathtub": {"item_id": 130, "plan": {"santeh": 7}, "self_height": 60},
+    "shower_cabin": {"item_id": 122, "plan": {"santeh": 7}, "self_height": 220},
+    "washing_machine": {"item_id": 126, "plan": {"santeh": 7, "furniture": 6}, "self_height": 85, "over_floor": {"value": 0, "display": false}, "on_show_decoration": 1},
+    "dryer": {"item_id": 280, "plan": {"santeh": 7}, "self_height": 85, "over_floor": {"value": 0, "display": false}, "on_show_decoration": 1}
+   }
+  },
+  {
+   "source": "tools/reference/remplanner_example_v3_hall_mirror_shoes.plan",
+   "items": {
+    "bathroom_mirror": {"item_id": 440, "plan": {"furniture": 6}, "self_height": 70, "over_floor": {"value": 105, "display": false}},
+    "shoes_closet": {"item_id": 166, "plan": {"furniture": 6}, "self_height": 0, "on_show_decoration": 1}
+   }
+  },
+  {
+   "source": "tools/reference/remplanner_example_v3_catalog2.plan",
+   "items": {
+    "armchair_le_corbusier": {"item_id": 860, "plan": {"furniture": 6}, "self_height": 0},
+    "commode": {"item_id": 163, "plan": {"furniture": 6}, "self_height": 68},
+    "chest_for_sink": {"item_id": 454, "plan": {"santeh": 7}, "self_height": 85},
+    "tetra_stillage": {"item_id": 822, "plan": {"furniture": 6}, "self_height": 57, "over_floor": {"value": 100, "display": false}, "on_show_decoration": 1},
+    "table_round": {"item_id": 115, "plan": {"furniture": 6}, "self_height": 75},
+    "bar_chair_backrest": {"item_id": 672, "plan": {"furniture": 6}, "self_height": 0},
+    "bar_table": {"item_id": 920, "plan": {"furniture": 6}, "self_height": 96},
+    "kitchen_box_penal": {"item_id": 178, "plan": {"furniture": 6}, "self_height": 212},
+    "kitchen_box_dishwasher": {"item_id": 636, "plan": {"furniture": 6}, "self_height": 85, "on_show_decoration": 1},
+    "pencil_case_oven_microwave": {"item_id": 664, "plan": {"furniture": 6}, "self_height": 212, "on_show_decoration": 1},
+    "built_in_fridge": {"item_id": 676, "plan": {"furniture": 6}, "self_height": 212, "on_show_decoration": 1},
+    "kitchen_bench": {"item_id": 783, "plan": {"furniture": 6}, "self_height": 84},
+    "folding_wall_table": {"item_id": 921, "plan": {"furniture": 6}, "self_height": 4, "over_floor": {"value": 81, "display": false}},
+    "low_cabinet_sideboard": {"item_id": 855, "plan": {"furniture": 6}, "self_height": 135},
+    "monkey_bars": {"item_id": 251, "plan": {"furniture": 6}, "self_height": 0},
+    "sofa_double": {"item_id": 92, "plan": {"furniture": 6}, "self_height": 85},
+    "towel_dryer": {"item_id": 125, "plan": {"santeh": 7}, "self_height": 60, "over_floor": {"value": 110, "display": false}},
+    "toilet_with_frame": {"item_id": 414, "plan": {"santeh": 7}, "self_height": 34, "over_floor": {"value": 6, "display": false}},
+    "pencil_cabinet_above_washing": {"item_id": 446, "plan": {"santeh": 7}, "self_height": 200},
+    "stillage_floor_book": {"item_id": 1836, "plan": {"furniture": 6}, "self_height": 200},
+    "bookshelf": {"item_id": 153, "plan": {"furniture": 6}, "self_height": 190}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта, параметры — из полного каталога",
+   "items": {
+    "double_sink_box_floor": {"item_id": 1698, "plan": {"santeh": 7}, "self_height": 80},
+    "rectangular_shower_cabin_true": {"item_id": 1395, "plan": {"santeh": 7}, "self_height": 220},
+    "four_door_ward_coupe": {"item_id": 844, "plan": {"furniture": 6}, "self_height": 230, "over_floor": {"value": 0, "display": false}},
+    "ward_coupe_3doors": {"item_id": 1807, "plan": {"furniture": 6}, "self_height": 230, "over_floor": {"value": 0, "display": false}},
+    "hanger_hallway": {"item_id": 652, "plan": {"furniture": 6}, "self_height": 146, "over_floor": {"value": 50, "display": false}},
+    "tele_on_mobile_stand": {"item_id": 934, "plan": {"furniture": 6}, "self_height": 190},
+    "bar_rack_console": {"item_id": 616, "plan": {"furniture": 6}, "self_height": 0, "over_floor": {"value": 85, "display": false}},
+    "dryer_on_wall": {"item_id": 915, "plan": {"furniture": 6}, "self_height": 19, "over_floor": {"value": 190, "display": false}}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта",
+   "items": {
+    "bedside_bench": {"item_id": 618, "plan": {"furniture": 6}, "self_height": 43},
+    "mezzanine_cabinet_2door": {"item_id": 1470, "plan": {"furniture": 6}, "self_height": 40, "over_floor": {"value": 230, "display": false}},
+    "bed_transformer_with_sofa": {"item_id": 627, "plan": {"furniture": 6}, "self_height": 260},
+    "workbench_with_shelves": {"item_id": 1230, "plan": {"furniture": 6}, "self_height": 80},
+    "horizontal_bar": {"item_id": 320, "plan": {"furniture": 6}, "self_height": 0, "over_floor": {"value": 200, "display": false}},
+    "hooks_for_hangers": {"item_id": 1793, "plan": {"furniture": 6}, "self_height": 8, "over_floor": {"value": 150, "display": false}}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта",
+   "items": {
+    "banquet_shelf_shoes": {"item_id": 838, "plan": {"furniture": 6}, "self_height": 45},
+    "pouf-cube": {"item_id": 784, "plan": {"furniture": 6}, "self_height": 45},
+    "installation_сabinet": {"item_id": 1428, "plan": {"santeh": 7}, "self_height": 140, "over_floor": {"value": 120, "display": true}},
+    "monstera": {"item_id": 1624, "plan": {"furniture": 6}, "self_height": 0},
+    "ficus": {"item_id": 658, "plan": {"furniture": 6}, "self_height": 0, "over_floor": {"value": 0, "display": false}}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта",
+   "items": {
+    "exercycle": {"item_id": 313, "plan": {"furniture": 6}, "self_height": 0},
+    "hammock_chair": {"item_id": 696, "plan": {"furniture": 6}, "self_height": 250, "over_floor": {"value": 65, "display": false}},
+    "stillage_floor_open": {"item_id": 1837, "plan": {"furniture": 6}, "self_height": 200}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта",
+   "items": {
+    "cat_litter": {"item_id": 717, "plan": {"furniture": 6}, "self_height": 0},
+    "animal_feeder": {"item_id": 720, "plan": {"furniture": 6}, "self_height": 0},
+    "service_cabinet": {"item_id": 608, "plan": {"furniture": 6}, "self_height": 67},
+    "3d_printer": {"item_id": 1207, "plan": {"furniture": 6}, "self_height": 46, "over_floor": {"value": 75, "display": false}},
+    "kitchen_box_penal_glass": {"item_id": 1745, "plan": {"furniture": 6}, "self_height": 212},
+    "shelf": {"item_id": 179, "plan": {"furniture": 6}, "self_height": 3, "over_floor": {"value": 140, "display": false}}
+   }
+  },
+  {
+   "source": "подтверждены снимком RemPlanner после импорта",
+   "items": {
+    "bottle_box": {"item_id": 105, "plan": {"furniture": 6}, "self_height": 85},
+    "kitchen_box_ending": {"item_id": 1754, "plan": {"furniture": 6}, "self_height": 85},
+    "floor_pencil_cabinet": {"item_id": 443, "plan": {"santeh": 7}, "self_height": 200},
+    "sink_box_floor": {"item_id": 1552, "plan": {"santeh": 7}, "self_height": 85},
+    "ward": {"item_id": 150, "plan": {"furniture": 6}, "self_height": 230, "over_floor": {"value": 0, "display": false}}
+   }
+  }
+ ]
+}
