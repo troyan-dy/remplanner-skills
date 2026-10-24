@@ -1,6 +1,6 @@
 {
   "name": "remplanner-skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Скилы планировки квартиры: чертёж по плану БТИ, опрос жильцов, серии концепций с проверкой эргономики и выгрузкой в RemPlanner.",
   "author": {
     "name": "Dmitriy Troyan",
