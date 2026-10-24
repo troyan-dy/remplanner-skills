@@ -6,6 +6,15 @@
 
 - CI гоняет selftest на Python 3.9 и 3.15 (actions v7).
 - SessionStart-хук для облачных сессий Claude Code: проверяет Python и собирает каталог RemPlanner.
+- Линтер wemake-python-styleguide для разработки набора: конфиг в `setup.cfg`, `requirements-dev.txt`, отдельная
+  задача CI на Python 3.15, установка в SessionStart-хуке (на Python 3.10+). Инструментам сторонние пакеты
+  по-прежнему не нужны.
+- Код инструментов приведён к линтеру без нарушений: внутренности — в пакете `tools/rpkit/`, в `tools/` — CLI и
+  библиотеки `planlib`, `rp_lib`, `ergonomics` с прежними именами и сигнатурами. Вывод, `.plan`, каталог, коды
+  выхода и команды прежние — сверено побайтно на наборе планов на Python 3.9, 3.13 и 3.15.
+- Проверенные предметы `rp_lib.CATALOG` — данными в `tools/reference/catalog_checked.json` с источником по группе;
+  константы `rp_lib.CATALOG`, `KITCHEN`, `PC_SHIFT` и `ergonomics.RULES_BY_ID` (было `ergonomics.R`) — только
+  для чтения.
 
 ## 0.1.0 — 2026-10-16
 

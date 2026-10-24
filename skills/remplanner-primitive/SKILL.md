@@ -28,7 +28,9 @@ disable-model-invocation: true
 
 ## 3. Тип в инструментах
 
-Добавь сборку объекта в `tools/rp_lib.py` и поле в `tools/reference/PLAN_FORMAT.md`. Выгрузи тестовый план
+Добавь сборку объекта в `tools/rp_lib.py` (реализация — модули `tools/rpkit/rp_*.py`, выгрузка из JSON —
+`tools/rpkit/export_*.py`) и поле в `tools/reference/PLAN_FORMAT.md`; новый проверенный предмет — в
+`tools/reference/catalog_checked.json` с источником. Выгрузи тестовый план
 с новым объектом (`tools/remplanner_export.py`) и проверь импортом и снимком (вызови Skill tool с
 `remplanner-screenshots`), что объект на месте.
 

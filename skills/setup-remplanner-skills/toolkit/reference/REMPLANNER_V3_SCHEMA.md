@@ -123,7 +123,7 @@
 
 Производные поля (`pcb, p1b, p2b, l1..r2, l1b.., l1c.., p1fact, pcfact, bg_polygon, eds, polygon, pc1h,
 room_l, room_r, p1corner, p2corner`) выводятся из `pc`, `width`, толщины стены и `position/offset`;
-формулы — `tools/rp_lib.py: _hole_geom`. Импорт файлов, где они посчитаны так, проходит без искажений.
+формулы — `tools/rpkit/rp_hole.py: hole_geometry`. Импорт файлов, где они посчитаны так, проходит без искажений.
 
 Входная дверь квартиры (`doors[].entry = true` в JSON) выгружается обычной дверью `single`: отдельного типа
 входной двери в образцах нет.
@@ -217,7 +217,8 @@ over_floor, anchor, icon, custom_type, santeh_data, subgroup, path…}}`. Дер
 то же, что нажать кнопку в браузере. В браузере имя видно и в `performance.getEntriesByType('resource')`.
 Если сайт сменит порядок — `python3 tools/rp_catalog.py fetch <url или имя>` или `build <файл.js>`.
 
-**Проверенные предметы** = `rp_lib.CATALOG` (сверены с образцами и снимками, перечислены ниже) ∪ имена из
+**Проверенные предметы** = `rp_lib.CATALOG` (сверены с образцами и снимками, перечислены ниже; данные с источником
+по каждой группе — `tools/reference/catalog_checked.json`) ∪ имена из
 `tools/catalog/confirmed.json` — его ведёт пользователь, потому что `tools/` перезаписывается установкой:
 
 ```json
