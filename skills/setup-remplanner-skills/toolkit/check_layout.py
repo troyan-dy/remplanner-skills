@@ -579,7 +579,7 @@ def m_passages(P, start):
     Такую уступку judge считает «из-за несущего» и баллы за неё не берёт."""
     s = k_of(*start)
     best, wpar = widest(P.dd, s)
-    dist, par = shortest(P.dd, s, E.R["pass_any"].min / 2)
+    dist, par = shortest(P.dd, s, E.RULES_BY_ID["pass_any"].min / 2)
     out, routes, doors = [], [], {}
 
     def width(v):
@@ -846,7 +846,7 @@ def m_leaves(P, routes):
 
 def m_corners(P, routes):
     """Выступающие углы, у которых маршрут поворачивает: ширина прохода у угла."""
-    r = E.R["pass_any"].min / 2
+    r = E.RULES_BY_ID["pass_any"].min / 2
     jambs = [pt for d in P.p["doors"] for pt in (d["hinge"], d["other"])]
     corners = {}
     for j in range(NY - 1):

@@ -8,20 +8,28 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools"))
-from planlib import F, as_is, save, series_dir, zone  # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "tools",
+))
+import planlib  # noqa: E402
+
+REPLACED = ("bathtub", "washer")  # уходят из санузла «как есть»
 
 
 def shower():
-    p = as_is()
-    p["meta"]["title"] = "Пример: душ вместо ванны"
-    p["furniture"] = [f for f in p["furniture"] if f["id"] not in ("bathtub", "washer")] + [
-        F("shower", [25, 505, 90, 90], "душ 90×90", "shower_cabin", "down"),
-        F("washer", [125, 550, 60, 45], "стиральная машина", "washing_machine", "down"),
+    """Душ 90×90 на месте ванны, стиральная машина рядом."""
+    plan = planlib.as_is()
+    plan["meta"]["title"] = "Пример: душ вместо ванны"
+    kept = [piece for piece in plan["furniture"] if piece["id"] not in REPLACED]
+    plan["furniture"] = kept + [
+        planlib.F("shower", [25, 505, 90, 90], "душ 90×90", "shower_cabin", "down"),
+        planlib.F("washer", [125, 550, 60, 45], "стиральная машина", "washing_machine", "down"),
     ]
-    p["zones"].append(zone("z-shower", [25, 435, 90, 70], "вход в душ"))
-    return p
+    entrance = planlib.zone("z-shower", [25, 435, 90, 70], "вход в душ")
+    plan["zones"].append(entrance)
+    return plan
 
 
 if __name__ == "__main__":
-    save({"shower": shower()}, series_dir(1, "2026-01-01"))
+    series = planlib.series_dir(1, "2026-01-01")
+    planlib.save({"shower": shower()}, series)
